@@ -63,12 +63,31 @@ const mockBookings = [
 
 const AdminDashboard = () => {
   const [userType, setUserType] = useState('customer');
+  const [isDark, setIsDark] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     const type = localStorage.getItem('userType') || 'customer';
     setUserType(type);
+    
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
   }, []);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      setIsDark(false);
+      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      setIsDark(true);
+      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add('dark');
+    }
+  };
 
   if (userType !== 'admin') {
     return (
@@ -769,6 +788,14 @@ const AdminDashboard = () => {
                 </>
               ) : (
                 <>
+                  <button 
+                    onClick={toggleTheme}
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <span className="material-symbols-outlined">
+                      {isDark ? 'light_mode' : 'dark_mode'}
+                    </span>
+                  </button>
                   <button className="p-2 rounded-xl bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                     <span className="material-symbols-outlined">notifications</span>
                   </button>
