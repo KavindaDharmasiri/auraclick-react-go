@@ -1,70 +1,163 @@
-# Getting Started with Create React App
+# Aura Photography - React Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, professional photography services website built with React, featuring AI-enhanced booking systems, gear rentals, and comprehensive service management.
 
-## Available Scripts
+## 🌟 Features
 
-In the project directory, you can run:
+### Core Pages
+- **Home Page** - Hero section with service overview and call-to-actions
+- **Photoshoot Bookings** - AI-enhanced booking system with creative assistant
+- **Gear Rentals** - Professional equipment rental with filtering and search
+- **Studio Bookings** - Premium studio space reservations
+- **Wedding Planning** - Specialized wedding photography services
+- **Contact** - Contact form and business information
+- **Admin Dashboard** - Management interface for bookings and inventory
 
-### `npm start`
+### Key Features
+- **AI Creative Assistant** - Powered by Gemini AI for photoshoot planning
+- **Interactive Calendar** - Date selection for bookings
+- **Advanced Filtering** - Brand, price, and category filters for gear
+- **Responsive Design** - Mobile-first approach with dark theme
+- **Modern UI/UX** - Clean, professional design with smooth animations
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Getting Started
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Prerequisites
+- Node.js (version 14 or higher)
+- npm or yarn package manager
 
-### `npm test`
+### Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone or navigate to the project directory:**
+   ```bash
+   cd "C:\Users\kavinda_d\Documents\campus thirdparty\1st contract\aura-photography"
+   ```
 
-### `npm run build`
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Start the development server:**
+   ```bash
+   npm start
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Open your browser and visit:**
+   ```
+   http://localhost:3000
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📁 Project Structure
 
-### `npm run eject`
+```
+aura-photography/
+├── public/
+│   ├── index.html
+│   └── ...
+├── src/
+│   ├── components/
+│   │   └── Navigation.js          # Reusable navigation component
+│   ├── pages/
+│   │   ├── Home.js               # Landing page with hero section
+│   │   ├── PhotoshootBookings.js # AI-enhanced booking system
+│   │   ├── GearRentals.js        # Equipment rental marketplace
+│   │   ├── StudioBookings.js     # Studio space reservations
+│   │   ├── WeddingPlanning.js    # Wedding photography services
+│   │   ├── Contact.js            # Contact form and info
+│   │   └── AdminDashboard.js     # Admin management interface
+│   ├── App.js                    # Main app component with routing
+│   ├── App.css                   # Global styles and design system
+│   ├── index.js                  # React app entry point
+│   └── index.css                 # Base CSS styles
+├── package.json
+└── README.md
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🎨 Design System
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Colors
+- **Primary**: `#3211d4` - Main brand color
+- **AI Glow**: `#8b5cf6` - AI feature highlights
+- **Background Light**: `#f6f6f8` - Light theme background
+- **Background Dark**: `#131022` - Dark theme background
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Typography
+- **Font Family**: Plus Jakarta Sans (Google Fonts)
+- **Icons**: Material Symbols Outlined
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Components
+- **Navigation**: Responsive navigation with transparent and solid variants
+- **Buttons**: Primary, secondary, and specialized button styles
+- **Cards**: Service cards, gear rental cards, and information cards
+- **Forms**: Styled form inputs with focus states
 
-## Learn More
+## 🔧 Available Scripts
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `npm start` - Runs the app in development mode
+- `npm build` - Builds the app for production
+- `npm test` - Launches the test runner
+- `npm eject` - Ejects from Create React App (one-way operation)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📱 Responsive Design
 
-### Code Splitting
+The application is fully responsive and optimized for:
+- **Desktop** (1440px+)
+- **Tablet** (768px - 1439px)
+- **Mobile** (320px - 767px)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🌙 Dark Theme
 
-### Analyzing the Bundle Size
+The application features a beautiful dark theme by default, with:
+- High contrast for accessibility
+- Smooth transitions between states
+- Glass morphism effects for modern aesthetics
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🤖 AI Features
 
-### Making a Progressive Web App
+### Creative Assistant
+- **AI-powered suggestions** for photoshoot themes
+- **Color palette recommendations** based on selected themes
+- **Moodboard generation** capabilities
+- **Natural language processing** for creative descriptions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🛠️ Technologies Used
 
-### Advanced Configuration
+- **React 18** - Frontend framework
+- **React Router DOM** - Client-side routing
+- **CSS3** - Styling with custom properties and modern features
+- **Google Fonts** - Typography (Plus Jakarta Sans)
+- **Material Symbols** - Icon system
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 📋 TODO / Future Enhancements
 
-### Deployment
+- [ ] Implement backend API integration
+- [ ] Add user authentication system
+- [ ] Complete admin dashboard functionality
+- [ ] Add payment processing integration
+- [ ] Implement real-time booking availability
+- [ ] Add image gallery and portfolio sections
+- [ ] Integrate with calendar systems
+- [ ] Add email notification system
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🤝 Contributing
 
-### `npm run build` fails to minify
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 📞 Support
+
+For support and questions, please contact:
+- **Email**: hello@auraphotography.com
+- **Phone**: +1 (555) 123-4567
+
+---
+
+**Built with ❤️ for Aura Photography**
