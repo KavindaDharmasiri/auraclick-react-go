@@ -49,17 +49,17 @@ const GearDetail = () => {
   };
 
   return (
-    <div className="bg-background-dark text-white min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
       <Navigation />
       
       <main className="max-w-7xl mx-auto px-6 lg:px-10 py-8">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-400 mb-8">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400 mb-8">
           <button onClick={() => navigate('/gear-rentals')} className="hover:text-primary">
             Gear Rentals
           </button>
           <span className="material-symbols-outlined text-xs">chevron_right</span>
-          <span className="text-white">{gearItem.name}</span>
+          <span className="text-gray-900 dark:text-white">{gearItem.name}</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -87,7 +87,7 @@ const GearDetail = () => {
                 </span>
               </div>
               <h1 className="text-4xl font-black mb-4">{gearItem.name}</h1>
-              <p className="text-slate-400 text-lg mb-6">{gearItem.fullDescription}</p>
+              <p className="text-gray-600 dark:text-slate-400 text-lg mb-6">{gearItem.fullDescription}</p>
               
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-8">
@@ -105,7 +105,7 @@ const GearDetail = () => {
               <div className="grid grid-cols-2 gap-4">
                 {gearItem.specs.map((spec) => (
                   <div key={spec.label} className="flex justify-between py-2 border-b border-slate-800">
-                    <span className="text-slate-400">{spec.label}</span>
+                    <span className="text-gray-600 dark:text-slate-400">{spec.label}</span>
                     <span className="font-semibold">{spec.value}</span>
                   </div>
                 ))}
@@ -126,7 +126,7 @@ const GearDetail = () => {
                       onClick={() => setSelectedDuration(duration)}
                       className={`p-3 rounded-xl text-center transition-all ${
                         selectedDuration === duration
-                          ? 'bg-primary text-white'
+                          ? 'bg-primary text-gray-900 dark:text-white'
                           : 'bg-slate-700 hover:bg-slate-600'
                       }`}
                     >
@@ -160,7 +160,7 @@ const GearDetail = () => {
               {/* Price Summary */}
               <div className="border-t border-slate-700 pt-6 mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-slate-400">
+                  <span className="text-gray-600 dark:text-slate-400">
                     {quantity}x {gearItem.name} ({getDurationLabel(selectedDuration)})
                   </span>
                   <span className="font-bold">
@@ -178,7 +178,7 @@ const GearDetail = () => {
               {/* Add to Cart Button */}
               <button 
                 onClick={handleAddToCart}
-                className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined">shopping_cart</span>
                 Add to Cart

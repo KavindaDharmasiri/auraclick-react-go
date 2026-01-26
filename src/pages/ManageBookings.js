@@ -14,9 +14,9 @@ const ManageBookings = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold">Manage Bookings</h1>
-          <p className="text-slate-400">Track and manage all photography bookings</p>
+          <p className="text-gray-600 dark:text-slate-400">Track and manage all photography bookings</p>
         </div>
-        <button className="bg-primary text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2">
+        <button className="bg-primary text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2">
           <span className="material-symbols-outlined">add</span>
           New Booking
         </button>
@@ -25,21 +25,21 @@ const ManageBookings = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-          <h3 className="text-sm text-slate-400 mb-2">Total Bookings (Month)</h3>
+          <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Total Bookings (Month)</h3>
           <div className="flex items-end justify-between">
             <span className="text-3xl font-bold">128</span>
             <span className="text-green-400 text-sm">+12%</span>
           </div>
         </div>
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-          <h3 className="text-sm text-slate-400 mb-2">Pending Confirmations</h3>
+          <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Pending Confirmations</h3>
           <div className="flex items-end justify-between">
             <span className="text-3xl font-bold">14</span>
             <span className="text-red-400 text-sm">-5%</span>
           </div>
         </div>
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-          <h3 className="text-sm text-slate-400 mb-2">Monthly Revenue</h3>
+          <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Monthly Revenue</h3>
           <div className="flex items-end justify-between">
             <span className="text-3xl font-bold">$12,450</span>
             <span className="text-green-400 text-sm">+8%</span>
@@ -52,12 +52,12 @@ const ManageBookings = () => {
         <table className="w-full">
           <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">Date & Time</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">Client Name</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">Service Type</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-slate-400">Payment</th>
-              <th className="px-6 py-4 text-right text-xs font-bold uppercase text-slate-400">Action</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-gray-600 dark:text-slate-400">Date & Time</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-gray-600 dark:text-slate-400">Client Name</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-gray-600 dark:text-slate-400">Service Type</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-gray-600 dark:text-slate-400">Status</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase text-gray-600 dark:text-slate-400">Payment</th>
+              <th className="px-6 py-4 text-right text-xs font-bold uppercase text-gray-600 dark:text-slate-400">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
@@ -66,7 +66,7 @@ const ManageBookings = () => {
                 <td className="px-6 py-4">
                   <div>
                     <div className="font-semibold">{booking.date}</div>
-                    <div className="text-sm text-slate-400">{booking.time}</div>
+                    <div className="text-sm text-gray-600 dark:text-slate-400">{booking.time}</div>
                   </div>
                 </td>
                 <td className="px-6 py-4 font-medium">{booking.client}</td>

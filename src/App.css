@@ -7,11 +7,11 @@
 /* Admin Dashboard Styles */
 :root {
   --primary: #3211d4;
-  --background-light: #f6f6f8;
-  --background-dark: #0B0B0C;
-  --surface-dark: #131022;
-  --border-dark: #2b2839;
-  --muted-text: #a19db9;
+  --background-light: #ffffff;
+  --background-dark: #ffffff;
+  --surface-dark: #f9fafb;
+  --border-dark: #e5e7eb;
+  --muted-text: #6b7280;
 }
 
 .sidebar-active {

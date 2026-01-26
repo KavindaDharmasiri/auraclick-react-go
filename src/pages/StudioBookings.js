@@ -51,14 +51,14 @@ const StudioBookings = () => {
   ];
 
   return (
-    <div className="bg-background-dark text-white min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
       <Navigation />
       
       <main className="w-full px-0 py-10">
         {/* Page Heading */}
         <div className="mb-10">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Studio Bookings</h1>
-          <p className="text-slate-400 text-lg max-w-2xl">Reserve high-end photography spaces for your next project. All studios include standard grip and lighting equipment.</p>
+          <p className="text-gray-600 dark:text-slate-400 text-lg max-w-2xl">Reserve high-end photography spaces for your next project. All studios include standard grip and lighting equipment.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -88,19 +88,19 @@ const StudioBookings = () => {
                       }}
                     ></div>
                     {selectedStudio === studio.name && (
-                      <div className="absolute top-4 right-4 bg-primary size-6 rounded-full flex items-center justify-center text-white">
+                      <div className="absolute top-4 right-4 bg-primary size-6 rounded-full flex items-center justify-center text-gray-900 dark:text-white">
                         <span className="material-symbols-outlined text-sm">check</span>
                       </div>
                     )}
                     <div className="absolute bottom-0 p-5 w-full">
                       <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest mb-2 inline-block ${
-                        studio.badge === 'Premium' ? 'bg-primary text-white' :
-                        studio.badge === 'Selected' ? 'bg-white/20 backdrop-blur-md text-white' :
-                        'bg-primary/50 backdrop-blur-md text-white'
+                        studio.badge === 'Premium' ? 'bg-primary text-gray-900 dark:text-white' :
+                        studio.badge === 'Selected' ? 'bg-white/20 backdrop-blur-md text-gray-900 dark:text-white' :
+                        'bg-primary/50 backdrop-blur-md text-gray-900 dark:text-white'
                       }`}>
                         {studio.badge}
                       </span>
-                      <p className="text-white text-xl font-bold leading-tight">{studio.name}</p>
+                      <p className="text-gray-900 dark:text-white text-xl font-bold leading-tight">{studio.name}</p>
                       <p className="text-slate-300 text-xs mt-1">{studio.description}</p>
                     </div>
                   </div>
@@ -179,15 +179,15 @@ const StudioBookings = () => {
                 </div>
                 <div className="grid grid-cols-7 gap-2 text-center mb-4">
                   {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                    <span key={day} className="text-[10px] font-bold text-slate-400 uppercase">{day}</span>
+                    <span key={day} className="text-[10px] font-bold text-gray-600 dark:text-slate-400 uppercase">{day}</span>
                   ))}
                   {[28, 29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((date) => (
                     <button 
                       key={date}
                       onClick={() => setSelectedDate(date)}
                       className={`aspect-square text-xs rounded-lg ${
-                        date < 1 ? 'text-slate-400 cursor-not-allowed' :
-                        selectedDate === date ? 'bg-primary text-white font-bold shadow-lg shadow-primary/40' :
+                        date < 1 ? 'text-gray-600 dark:text-slate-400 cursor-not-allowed' :
+                        selectedDate === date ? 'bg-primary text-gray-900 dark:text-white font-bold shadow-lg shadow-primary/40' :
                         date === 10 ? 'relative flex items-center justify-center hover:bg-primary/20' :
                         'hover:bg-primary/20'
                       }`}
@@ -208,8 +208,8 @@ const StudioBookings = () => {
                         key={slot.time}
                         onClick={() => slot.available && setSelectedTime(slot.time)}
                         className={`py-2 px-3 rounded-lg text-xs font-medium ${
-                          !slot.available ? 'bg-slate-700 text-slate-400 line-through cursor-not-allowed border-none' :
-                          selectedTime === slot.time ? 'bg-primary text-white font-bold border border-primary' :
+                          !slot.available ? 'bg-slate-700 text-gray-600 dark:text-slate-400 line-through cursor-not-allowed border-none' :
+                          selectedTime === slot.time ? 'bg-primary text-gray-900 dark:text-white font-bold border border-primary' :
                           'border border-slate-700 hover:border-primary hover:bg-primary/5'
                         }`}
                         disabled={!slot.available}
@@ -222,12 +222,12 @@ const StudioBookings = () => {
               </div>
 
               {/* Summary Card */}
-              <div className="bg-primary text-white rounded-2xl p-6 shadow-xl shadow-primary/20">
+              <div className="bg-primary text-gray-900 dark:text-white rounded-2xl p-6 shadow-xl shadow-primary/20">
                 <div className="flex items-center gap-3 mb-6">
                   <span className="material-symbols-outlined">receipt_long</span>
                   <h3 className="font-bold">Booking Summary</h3>
                 </div>
-                <div className="space-y-3 mb-6 border-b border-white/10 pb-6">
+                <div className="space-y-3 mb-6 border-b border-gray-300 dark:border-white/10 pb-6">
                   <div className="flex justify-between text-sm">
                     <span className="opacity-80">Studio</span>
                     <span className="font-bold">{selectedStudio}</span>
@@ -250,7 +250,7 @@ const StudioBookings = () => {
                   </div>
                   <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded">Tax included</span>
                 </div>
-                <button className="w-full py-4 bg-white text-primary font-black rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                <button className="w-full py-4 bg-white text-primary font-black rounded-xl hover:bg-gray-200 dark:bg-slate-100 transition-colors flex items-center justify-center gap-2">
                   Reserve Now
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
@@ -265,7 +265,7 @@ const StudioBookings = () => {
                   }}
                 ></div>
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-white text-xs font-bold flex items-center gap-1">
+                  <p className="text-gray-900 dark:text-white text-xs font-bold flex items-center gap-1">
                     <span className="material-symbols-outlined text-sm">directions</span> Get Directions
                   </p>
                 </div>

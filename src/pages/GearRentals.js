@@ -90,9 +90,9 @@ const GearRentals = () => {
 
   const getStatusBadge = (status) => {
     const statusStyles = {
-      'Available': 'bg-green-500 text-white',
-      'Low Stock': 'bg-amber-500 text-white',
-      'Fully Booked': 'bg-red-500 text-white'
+      'Available': 'bg-green-500 text-gray-900 dark:text-white',
+      'Low Stock': 'bg-amber-500 text-gray-900 dark:text-white',
+      'Fully Booked': 'bg-red-500 text-gray-900 dark:text-white'
     };
     
     return (
@@ -104,14 +104,14 @@ const GearRentals = () => {
   };
 
   return (
-    <div className="bg-background-dark text-white min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
       <Navigation />
 
       <main className="w-full px-0 py-8">
         {/* Page Heading */}
         <div className="flex flex-wrap justify-between items-end gap-6 mb-8">
           <div className="flex flex-col gap-2 max-w-2xl">
-            <h1 className="text-slate-900 dark:text-white text-4xl lg:text-5xl font-black leading-tight tracking-tight">Rent Professional Gear</h1>
+            <h1 className="text-slate-900 dark:text-gray-900 dark:text-white text-4xl lg:text-5xl font-black leading-tight tracking-tight">Rent Professional Gear</h1>
             <p className="text-slate-500 dark:text-[#a19db9] text-lg font-normal">Premium equipment for your next shoot. Available for local pickup in NYC or priority delivery.</p>
           </div>
           
@@ -140,17 +140,17 @@ const GearRentals = () => {
           <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-8">
             <div className="flex flex-col gap-6 bg-slate-50 dark:bg-transparent p-6 lg:p-0 rounded-2xl">
               <div>
-                <h3 className="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                <h3 className="text-slate-900 dark:text-gray-900 dark:text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px]">filter_list</span>
                   Filters
                 </h3>
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between group cursor-pointer px-3 py-2 rounded-xl bg-primary/10 dark:bg-[#2b2839]">
                     <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-primary dark:text-white text-[20px]">sell</span>
-                      <p className="text-primary dark:text-white text-sm font-bold">Brands</p>
+                      <span className="material-symbols-outlined text-primary dark:text-gray-900 dark:text-white text-[20px]">sell</span>
+                      <p className="text-primary dark:text-gray-900 dark:text-white text-sm font-bold">Brands</p>
                     </div>
-                    <span className="material-symbols-outlined text-primary dark:text-white text-[18px]">expand_less</span>
+                    <span className="material-symbols-outlined text-primary dark:text-gray-900 dark:text-white text-[18px]">expand_less</span>
                   </div>
                   <div className="px-3 py-2 space-y-1">
                     {brands.map((brand) => (
@@ -161,7 +161,7 @@ const GearRentals = () => {
                           className="h-5 w-5 rounded border-slate-300 dark:border-[#3f3b54] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0" 
                           type="checkbox"
                         />
-                        <p className="text-slate-700 dark:text-white text-sm font-medium">{brand}</p>
+                        <p className="text-slate-700 dark:text-gray-900 dark:text-white text-sm font-medium">{brand}</p>
                       </label>
                     ))}
                   </div>
@@ -182,7 +182,7 @@ const GearRentals = () => {
                   </div>
                   <div className="flex justify-between mt-4">
                     <span className="text-xs font-bold text-slate-500">$50</span>
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">$500+</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-gray-900 dark:text-white">$500+</span>
                   </div>
                 </div>
               </div>
@@ -209,12 +209,12 @@ const GearRentals = () => {
                     </div>
                     {item.status === 'Fully Booked' && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm uppercase tracking-widest bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">Fully Booked</span>
+                        <span className="text-gray-900 dark:text-white font-bold text-sm uppercase tracking-widest bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">Fully Booked</span>
                       </div>
                     )}
                     {item.status !== 'Fully Booked' && (
                       <div className="absolute top-4 right-4">
-                        <button className="size-8 bg-black/20 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-primary transition-colors">
+                        <button className="size-8 bg-black/20 backdrop-blur-md rounded-full text-gray-900 dark:text-white flex items-center justify-center hover:bg-primary transition-colors">
                           <span className="material-symbols-outlined text-[18px]">favorite</span>
                         </button>
                       </div>
@@ -223,14 +223,14 @@ const GearRentals = () => {
                   <div className="p-5 flex flex-col gap-4">
                     <div>
                       <div className="flex justify-between items-start mb-1">
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'Fully Booked' ? 'text-slate-400' : 'text-primary'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'Fully Booked' ? 'text-gray-600 dark:text-slate-400' : 'text-primary'}`}>
                           {item.category}
                         </span>
                         {item.condition && (
                           <span className="text-slate-400 dark:text-[#a19db9] text-xs font-medium">{item.condition}</span>
                         )}
                       </div>
-                      <h3 className={`text-lg font-bold leading-tight transition-colors ${item.status === 'Fully Booked' ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white group-hover:text-primary'}`}>
+                      <h3 className={`text-lg font-bold leading-tight transition-colors ${item.status === 'Fully Booked' ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-gray-900 dark:text-white group-hover:text-primary'}`}>
                         {item.name}
                       </h3>
                       <p className="text-slate-500 dark:text-[#a19db9] text-sm mt-1">{item.description}</p>
@@ -245,7 +245,7 @@ const GearRentals = () => {
                     <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 dark:border-[#2b2839]">
                       <div>
                         <p className="text-slate-400 dark:text-[#a19db9] text-[10px] font-bold uppercase tracking-tighter">Daily Rate</p>
-                        <p className="text-slate-900 dark:text-white text-xl font-black">
+                        <p className="text-slate-900 dark:text-gray-900 dark:text-white text-xl font-black">
                           ${item.price}<span className="text-sm font-normal text-[#a19db9]">/day</span>
                         </p>
                       </div>
@@ -253,8 +253,8 @@ const GearRentals = () => {
                         onClick={() => item.status !== 'Fully Booked' && navigate(`/gear/${item.id}`)}
                         className={`rounded-xl h-10 px-4 font-bold text-sm transition-transform flex items-center gap-2 ${
                           item.status === 'Fully Booked' 
-                            ? 'bg-slate-200 dark:bg-[#2b2839] text-slate-400 cursor-not-allowed' 
-                            : 'bg-primary hover:bg-primary/90 text-white active:scale-95'
+                            ? 'bg-slate-200 dark:bg-[#2b2839] text-gray-600 dark:text-slate-400 cursor-not-allowed' 
+                            : 'bg-primary hover:bg-primary/90 text-gray-900 dark:text-white active:scale-95'
                         }`}
                         disabled={item.status === 'Fully Booked'}
                       >
@@ -275,7 +275,7 @@ const GearRentals = () => {
                 <span className="material-symbols-outlined">chevron_left</span>
               </button>
               <div className="flex gap-2">
-                <button className="size-10 flex items-center justify-center rounded-xl bg-primary text-white font-bold">1</button>
+                <button className="size-10 flex items-center justify-center rounded-xl bg-primary text-gray-900 dark:text-white font-bold">1</button>
                 <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] font-medium">2</button>
                 <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] font-medium">3</button>
                 <span className="text-slate-500 py-2">...</span>
@@ -293,7 +293,7 @@ const GearRentals = () => {
       <footer className="border-t border-slate-200 dark:border-[#2b2839] py-12 px-6 lg:px-20 bg-slate-50 dark:bg-background-dark">
         <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 text-primary dark:text-white">
+            <div className="flex items-center gap-2 text-primary dark:text-gray-900 dark:text-white">
               <div className="size-6">
                 <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
@@ -304,7 +304,7 @@ const GearRentals = () => {
             <p className="text-slate-500 dark:text-[#a19db9] text-sm">Professional photography services and equipment rental platform for the modern creative.</p>
           </div>
           <div>
-            <h4 className="text-slate-900 dark:text-white font-bold mb-4">Platform</h4>
+            <h4 className="text-slate-900 dark:text-gray-900 dark:text-white font-bold mb-4">Platform</h4>
             <ul className="space-y-2 text-sm text-slate-500 dark:text-[#a19db9]">
               <li><a className="hover:text-primary transition-colors" href="#">How it works</a></li>
               <li><a className="hover:text-primary transition-colors" href="#">Pricing</a></li>
@@ -312,7 +312,7 @@ const GearRentals = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-slate-900 dark:text-white font-bold mb-4">Support</h4>
+            <h4 className="text-slate-900 dark:text-gray-900 dark:text-white font-bold mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-slate-500 dark:text-[#a19db9]">
               <li><a className="hover:text-primary transition-colors" href="#">Help Center</a></li>
               <li><a className="hover:text-primary transition-colors" href="#">Safety Guide</a></li>
@@ -320,10 +320,10 @@ const GearRentals = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-slate-900 dark:text-white font-bold mb-4">Newsletter</h4>
+            <h4 className="text-slate-900 dark:text-gray-900 dark:text-white font-bold mb-4">Newsletter</h4>
             <div className="flex gap-2">
               <input className="flex-1 rounded-xl bg-white dark:bg-[#2b2839] border border-slate-200 dark:border-none text-sm px-4 h-10 focus:ring-1 focus:ring-primary outline-none" placeholder="Email address"/>
-              <button className="bg-primary text-white rounded-xl px-4 text-xs font-bold">Join</button>
+              <button className="bg-primary text-gray-900 dark:text-white rounded-xl px-4 text-xs font-bold">Join</button>
             </div>
           </div>
         </div>

@@ -112,7 +112,7 @@ const WeddingPlanning = () => {
   };
 
   return (
-    <div className="bg-background-dark text-white min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
       <Navigation />
       
       <main className="w-full px-0 py-12 space-y-24">
@@ -127,7 +127,7 @@ const WeddingPlanning = () => {
             }}
           ></div>
           <div className="relative z-10 max-w-4xl space-y-8">
-            <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-white/5 backdrop-blur-md border border-gray-300 dark:border-white/10 px-4 py-2 rounded-full mb-4">
               <span className="material-symbols-outlined text-purple-400 text-lg">auto_awesome</span>
               <span className="text-xs font-bold uppercase tracking-widest text-slate-200">AI-Powered Wedding Planning</span>
             </div>
@@ -140,12 +140,12 @@ const WeddingPlanning = () => {
             </p>
             <div className="pt-4 flex flex-col md:flex-row items-center justify-center gap-4">
               <Link to="/ai-booking">
-                <button className="bg-primary hover:bg-primary/90 text-white px-10 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 shadow-2xl shadow-primary/40">
+                <button className="bg-primary hover:bg-primary/90 text-gray-900 dark:text-white px-10 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 shadow-2xl shadow-primary/40">
                   Start Your Vision
                   <span className="material-symbols-outlined">colors_spark</span>
                 </button>
               </Link>
-              <button className="bg-white/3 backdrop-blur-md px-10 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 border border-white/10 hover:bg-white/10">
+              <button className="bg-white/3 backdrop-blur-md px-10 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 border border-gray-300 dark:border-white/10 hover:bg-white/10">
                 View Packages
               </button>
             </div>
@@ -156,7 +156,7 @@ const WeddingPlanning = () => {
         <section className="relative">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-extrabold tracking-tight mb-4">AI Dream Wedding Planner</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">Describe the atmosphere of your perfect day and watch our AI weave together a cohesive visual experience.</p>
+            <p className="text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">Describe the atmosphere of your perfect day and watch our AI weave together a cohesive visual experience.</p>
           </div>
           <div className="relative bg-background-dark/80 border border-white/5 rounded-2xl p-8 lg:p-12" style={{
             background: 'rgba(19, 16, 34, 0.8)',
@@ -169,23 +169,23 @@ const WeddingPlanning = () => {
                   <label className="text-sm font-bold text-slate-300 uppercase tracking-widest">Describe Your Vision</label>
                   <div className="relative group">
                     <textarea 
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600 min-h-[200px] text-white" 
+                      className="w-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-2xl p-6 text-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600 min-h-[200px] text-gray-900 dark:text-white" 
                       placeholder="e.g., 'A romantic tropical sunset on a secluded beach with gold accents and wild orchids' or 'A vintage English garden party with pastel hydrangeas and fairy lights'"
                     ></textarea>
                     <div className="absolute bottom-4 right-4 flex gap-2">
-                      <span className="px-2 py-1 rounded bg-white/5 text-[10px] text-slate-500 uppercase font-bold">850 chars left</span>
+                      <span className="px-2 py-1 rounded bg-gray-100 dark:bg-white/5 text-[10px] text-slate-500 uppercase font-bold">850 chars left</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="text-xs font-semibold text-slate-500 mr-2 self-center">Quick Styles:</span>
-                  <button className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium hover:border-primary transition-colors">Bohemian Chic</button>
-                  <button className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium hover:border-primary transition-colors">Modern Minimalist</button>
-                  <button className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium hover:border-primary transition-colors">Classic Romance</button>
-                  <button className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium hover:border-primary transition-colors">Industrial Edge</button>
+                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Bohemian Chic</button>
+                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Modern Minimalist</button>
+                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Classic Romance</button>
+                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Industrial Edge</button>
                 </div>
                 <Link to="/ai-booking">
-                  <button className="w-full bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-primary/30 flex items-center justify-center gap-3 transition-transform active:scale-[0.98]">
+                  <button className="w-full bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 text-gray-900 dark:text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-primary/30 flex items-center justify-center gap-3 transition-transform active:scale-[0.98]">
                     <span className="material-symbols-outlined">auto_fix_high</span>
                     Visualize Your Day
                   </button>
@@ -203,7 +203,7 @@ const WeddingPlanning = () => {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
                     <div className="col-span-2 space-y-4">
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Suggested Palette</p>
-                      <div className="flex h-12 rounded-xl overflow-hidden border border-white/10">
+                      <div className="flex h-12 rounded-xl overflow-hidden border border-gray-300 dark:border-white/10">
                         <div className="flex-1 bg-slate-800"></div>
                         <div className="flex-1 bg-slate-700"></div>
                         <div className="flex-1 bg-slate-600"></div>
@@ -213,13 +213,13 @@ const WeddingPlanning = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Floral Concept</p>
-                          <div className="aspect-square rounded-xl bg-white/5 flex items-center justify-center border border-dashed border-white/10">
+                          <div className="aspect-square rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center border border-dashed border-gray-300 dark:border-white/10">
                             <span className="material-symbols-outlined text-slate-600 scale-150">local_florist</span>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lighting Style</p>
-                          <div className="aspect-square rounded-xl bg-white/5 flex items-center justify-center border border-dashed border-white/10">
+                          <div className="aspect-square rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center border border-dashed border-gray-300 dark:border-white/10">
                             <span className="material-symbols-outlined text-slate-600 scale-150">light_mode</span>
                           </div>
                         </div>
@@ -227,7 +227,7 @@ const WeddingPlanning = () => {
                     </div>
                     <div className="col-span-1 space-y-4">
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Moodboard Piece</p>
-                      <div className="aspect-[3/4] rounded-xl bg-white/5 flex flex-col items-center justify-center border border-dashed border-white/10 gap-3 p-4 text-center">
+                      <div className="aspect-[3/4] rounded-xl bg-gray-100 dark:bg-white/5 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 gap-3 p-4 text-center">
                         <span className="material-symbols-outlined text-slate-600 scale-150">image</span>
                         <span className="text-[10px] text-slate-500">Theme imagery will generate here</span>
                       </div>
@@ -244,13 +244,13 @@ const WeddingPlanning = () => {
           <div className="flex items-end justify-between px-2 mb-8">
             <div>
               <h2 className="text-3xl font-extrabold tracking-tight">Recent Celebrations</h2>
-              <p className="text-slate-400 mt-2">Browse our latest masterpieces across the globe.</p>
+              <p className="text-gray-600 dark:text-slate-400 mt-2">Browse our latest masterpieces across the globe.</p>
             </div>
             <div className="flex gap-2">
-              <button className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
+              <button className="size-10 rounded-full border border-gray-300 dark:border-white/10 flex items-center justify-center hover:bg-gray-100 dark:bg-white/5 transition-colors">
                 <span className="material-symbols-outlined">chevron_left</span>
               </button>
-              <button className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
+              <button className="size-10 rounded-full border border-gray-300 dark:border-white/10 flex items-center justify-center hover:bg-gray-100 dark:bg-white/5 transition-colors">
                 <span className="material-symbols-outlined">chevron_right</span>
               </button>
             </div>
@@ -269,7 +269,7 @@ const WeddingPlanning = () => {
                   </div>
                 </div>
                 <h3 className="text-xl font-bold">{item.title}</h3>
-                <p className="text-slate-400">{item.location}</p>
+                <p className="text-gray-600 dark:text-slate-400">{item.location}</p>
               </div>
             ))}
           </div>
@@ -279,7 +279,7 @@ const WeddingPlanning = () => {
         <section>
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl font-extrabold tracking-tight">Planning Packages</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
               Select a service level that matches your vision. Every package includes full access to our AI Planning Suite.
             </p>
           </div>
@@ -294,7 +294,7 @@ const WeddingPlanning = () => {
                 }`}
               >
                 {pkg.popular && (
-                  <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-black px-4 py-1.5 rounded-bl-xl uppercase tracking-widest">
+                  <div className="absolute top-0 right-0 bg-primary text-gray-900 dark:text-white text-[10px] font-black px-4 py-1.5 rounded-bl-xl uppercase tracking-widest">
                     Most Popular
                   </div>
                 )}
@@ -320,8 +320,8 @@ const WeddingPlanning = () => {
                   onClick={() => setSelectedPackage(pkg.name)}
                   className={`w-full mt-10 py-4 rounded-xl font-bold transition-all ${
                     pkg.popular 
-                      ? 'bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20' 
-                      : 'border border-white/10 hover:bg-white/5'
+                      ? 'bg-primary text-gray-900 dark:text-white hover:bg-primary/90 shadow-xl shadow-primary/20' 
+                      : 'border border-gray-300 dark:border-white/10 hover:bg-gray-100 dark:bg-white/5'
                   }`}
                 >
                   {pkg.name === 'Bespoke' ? 'Inquire Now' : `Select ${pkg.name}`}
@@ -335,31 +335,31 @@ const WeddingPlanning = () => {
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-4xl font-extrabold mb-6 tracking-tight leading-tight">Your Journey with Us</h2>
-            <p className="text-slate-400 text-lg mb-10">
+            <p className="text-gray-600 dark:text-slate-400 text-lg mb-10">
               We believe planning should be as beautiful as the wedding day itself. Here is how we bring your vision to life using our hybrid AI-human process.
             </p>
             <div className="space-y-12 relative">
               <div className="absolute left-6 top-2 bottom-2 w-px bg-gradient-to-b from-primary to-primary/10"></div>
               <div className="relative pl-16">
-                <div className="absolute left-0 size-12 rounded-full bg-primary flex items-center justify-center text-white z-10 shadow-lg shadow-primary/30">
+                <div className="absolute left-0 size-12 rounded-full bg-primary flex items-center justify-center text-gray-900 dark:text-white z-10 shadow-lg shadow-primary/30">
                   <span className="material-symbols-outlined">auto_fix_high</span>
                 </div>
                 <h4 className="text-xl font-bold">AI Design Generation</h4>
-                <p className="text-slate-400 mt-1">Start by defining your vision in our AI engine. We use these results as the blueprint for our physical styling.</p>
+                <p className="text-gray-600 dark:text-slate-400 mt-1">Start by defining your vision in our AI engine. We use these results as the blueprint for our physical styling.</p>
               </div>
               <div className="relative pl-16">
-                <div className="absolute left-0 size-12 rounded-full bg-background-dark border border-white/10 flex items-center justify-center text-slate-400 z-10">
+                <div className="absolute left-0 size-12 rounded-full bg-background-dark border border-gray-300 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-slate-400 z-10">
                   <span className="material-symbols-outlined">palette</span>
                 </div>
                 <h4 className="text-xl font-bold">Curation & Design</h4>
-                <p className="text-slate-400 mt-1">Our designers refine AI outputs into custom mood boards and source real-world vendors that match the aesthetic.</p>
+                <p className="text-gray-600 dark:text-slate-400 mt-1">Our designers refine AI outputs into custom mood boards and source real-world vendors that match the aesthetic.</p>
               </div>
               <div className="relative pl-16">
-                <div className="absolute left-0 size-12 rounded-full bg-background-dark border border-white/10 flex items-center justify-center text-slate-400 z-10">
+                <div className="absolute left-0 size-12 rounded-full bg-background-dark border border-gray-300 dark:border-white/10 flex items-center justify-center text-gray-600 dark:text-slate-400 z-10">
                   <span className="material-symbols-outlined">event_available</span>
                 </div>
                 <h4 className="text-xl font-bold">Logistics & Execution</h4>
-                <p className="text-slate-400 mt-1">We handle the contracts, site visits, and technical details to ensure the dream is fully realizable.</p>
+                <p className="text-gray-600 dark:text-slate-400 mt-1">We handle the contracts, site visits, and technical details to ensure the dream is fully realizable.</p>
               </div>
             </div>
           </div>
@@ -392,12 +392,12 @@ const WeddingPlanning = () => {
         </section>
 
         {/* Inquiry Form */}
-        <section className="max-w-4xl mx-auto bg-white/3 backdrop-blur-md rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+        <section className="max-w-4xl mx-auto bg-white/3 backdrop-blur-md rounded-[2rem] overflow-hidden border border-gray-300 dark:border-white/10 shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="p-12 bg-primary flex flex-col justify-between text-white">
+            <div className="p-12 bg-primary flex flex-col justify-between text-gray-900 dark:text-white">
               <div>
                 <h2 className="text-3xl font-black mb-4">Let's start planning.</h2>
-                <p className="text-white/80 leading-relaxed">
+                <p className="text-gray-900 dark:text-white/80 leading-relaxed">
                   Fill out the form to schedule your initial consultation. We'll include your AI vision report in our first meeting.
                 </p>
               </div>
@@ -426,7 +426,7 @@ const WeddingPlanning = () => {
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Partner 1</label>
                     <input 
-                      className="w-full bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-white" 
+                      className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                       placeholder="Full Name" 
                       type="text"
                       name="partner1"
@@ -437,7 +437,7 @@ const WeddingPlanning = () => {
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Partner 2</label>
                     <input 
-                      className="w-full bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-white" 
+                      className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                       placeholder="Full Name" 
                       type="text"
                       name="partner2"
@@ -449,7 +449,7 @@ const WeddingPlanning = () => {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address</label>
                   <input 
-                    className="w-full bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-white" 
+                    className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                     placeholder="email@example.com" 
                     type="email"
                     name="email"
@@ -461,7 +461,7 @@ const WeddingPlanning = () => {
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Wedding Date</label>
                     <input 
-                      className="w-full bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-white" 
+                      className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                       type="date"
                       name="weddingDate"
                       value={formData.weddingDate}
@@ -471,7 +471,7 @@ const WeddingPlanning = () => {
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Guest Count</label>
                     <select 
-                      className="w-full bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-white"
+                      className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                       name="guestCount"
                       value={formData.guestCount}
                       onChange={handleInputChange}
@@ -486,7 +486,7 @@ const WeddingPlanning = () => {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Your Vision</label>
                   <textarea 
-                    className="w-full bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-white" 
+                    className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                     placeholder="Tell us about your dream day..." 
                     rows="4"
                     name="vision"
@@ -496,7 +496,7 @@ const WeddingPlanning = () => {
                 </div>
                 <button 
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-primary/20"
+                  className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-primary/20"
                 >
                   Submit Inquiry
                 </button>

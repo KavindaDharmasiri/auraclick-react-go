@@ -72,20 +72,20 @@ const AdminDashboard = () => {
 
   if (userType !== 'admin') {
     return (
-      <div className="bg-background-dark text-white min-h-screen flex items-center justify-center">
+      <div className="bg-background-dark text-gray-900 dark:text-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="size-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <span className="material-symbols-outlined text-4xl text-primary">admin_panel_settings</span>
           </div>
           <h2 className="text-2xl font-bold mb-4">Admin Access Required</h2>
-          <p className="text-slate-400 mb-8">Please sign in with administrator credentials.</p>
+          <p className="text-gray-600 dark:text-slate-400 mb-8">Please sign in with administrator credentials.</p>
           <button 
             onClick={() => {
               localStorage.setItem('userType', 'admin');
               setUserType('admin');
               window.location.reload();
             }}
-            className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold mr-4"
+            className="bg-primary hover:bg-primary/90 text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold mr-4"
           >
             Switch to Admin
           </button>
@@ -95,7 +95,7 @@ const AdminDashboard = () => {
               setUserType('customer');
               window.location.reload();
             }}
-            className="border border-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-bold"
+            className="border border-slate-600 hover:bg-slate-700 text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold"
           >
             Stay as Customer
           </button>
@@ -110,7 +110,7 @@ const AdminDashboard = () => {
         <div className="p-8 flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Bookings (Month)</p>
+              <p className="text-slate-500 dark:text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Bookings (Month)</p>
               <div className="flex items-end justify-between">
                 <h3 className="text-3xl font-bold">128</h3>
                 <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Confirmations</p>
+              <p className="text-slate-500 dark:text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Confirmations</p>
               <div className="flex items-end justify-between">
                 <h3 className="text-3xl font-bold">14</h3>
                 <span className="text-[#fa6238] text-sm font-medium flex items-center gap-1">
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Revenue</p>
+              <p className="text-slate-500 dark:text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Revenue</p>
               <div className="flex items-end justify-between">
                 <h3 className="text-3xl font-bold">$12,450</h3>
                 <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
@@ -139,19 +139,19 @@ const AdminDashboard = () => {
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium">
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-gray-900 dark:text-white rounded-lg text-sm font-medium">
                 <span className="material-symbols-outlined text-lg">list</span>
                 All Bookings
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors">
                 <span className="material-symbols-outlined text-lg">camera</span>
                 Photoshoots
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors">
                 <span className="material-symbols-outlined text-lg">flash_on</span>
                 Studio
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors">
                 <span className="material-symbols-outlined text-lg">favorite</span>
                 Weddings
               </button>
@@ -227,7 +227,7 @@ const AdminDashboard = () => {
                 <button className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754] disabled:opacity-50">
                   <span className="material-symbols-outlined">chevron_left</span>
                 </button>
-                <button className="size-9 rounded-lg bg-primary text-white text-sm font-bold">1</button>
+                <button className="size-9 rounded-lg bg-primary text-gray-900 dark:text-white text-sm font-bold">1</button>
                 <button className="size-9 rounded-lg border border-slate-200 dark:border-[#3b4754] text-sm hover:bg-slate-100 dark:hover:bg-[#283039]">2</button>
                 <button className="size-9 rounded-lg border border-slate-200 dark:border-[#3b4754] text-sm hover:bg-slate-100 dark:hover:bg-[#283039]">3</button>
                 <button className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754]">
@@ -270,7 +270,7 @@ const AdminDashboard = () => {
                   <span className="material-symbols-outlined text-base">chevron_right</span>
                 </button>
               </div>
-              <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 mb-2">
+              <div className="grid grid-cols-7 text-center text-[11px] font-bold text-gray-600 dark:text-slate-400 mb-2">
                 <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
               </div>
               <div className="grid grid-cols-7 gap-1">
@@ -279,7 +279,7 @@ const AdminDashboard = () => {
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">2</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">3</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">4</button>
-                <button className="h-8 flex items-center justify-center text-xs bg-primary text-white rounded-lg">5</button>
+                <button className="h-8 flex items-center justify-center text-xs bg-primary text-gray-900 dark:text-white rounded-lg">5</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">6</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">7</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">8</button>
@@ -315,10 +315,10 @@ const AdminDashboard = () => {
         <div className="flex flex-col h-full">
           <div className="p-8 pb-4 flex flex-wrap justify-between items-end gap-4">
             <div className="flex flex-col gap-1">
-              <h2 className="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Gear Inventory</h2>
+              <h2 className="text-slate-900 dark:text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Gear Inventory</h2>
               <p className="text-slate-500 dark:text-[#a19db9] text-base">Manage and track 124 professional photography assets</p>
             </div>
-            <button className="flex items-center gap-2 px-6 h-12 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/25">
+            <button className="flex items-center gap-2 px-6 h-12 bg-primary text-gray-900 dark:text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/25">
               <span className="material-symbols-outlined">add</span>
               <span>Add New Item</span>
             </button>
@@ -328,30 +328,30 @@ const AdminDashboard = () => {
               <div className="flex flex-col gap-2 rounded-2xl p-6 border border-slate-200 dark:border-[#3f3b54] bg-white dark:bg-[#1b1929]">
                 <div className="flex items-center justify-between">
                   <p className="text-slate-500 dark:text-[#a19db9] text-sm font-medium">Total Assets</p>
-                  <span className="material-symbols-outlined text-slate-400">inventory</span>
+                  <span className="material-symbols-outlined text-gray-600 dark:text-slate-400">inventory</span>
                 </div>
-                <p className="text-slate-900 dark:text-white text-3xl font-bold">124</p>
+                <p className="text-slate-900 dark:text-gray-900 dark:text-white text-3xl font-bold">124</p>
               </div>
               <div className="flex flex-col gap-2 rounded-2xl p-6 border border-slate-200 dark:border-[#3f3b54] bg-white dark:bg-[#1b1929]">
                 <div className="flex items-center justify-between">
                   <p className="text-slate-500 dark:text-[#a19db9] text-sm font-medium">Currently Rented</p>
                   <span className="material-symbols-outlined text-primary">shopping_cart_checkout</span>
                 </div>
-                <p className="text-slate-900 dark:text-white text-3xl font-bold">32</p>
+                <p className="text-slate-900 dark:text-gray-900 dark:text-white text-3xl font-bold">32</p>
               </div>
               <div className="flex flex-col gap-2 rounded-2xl p-6 border border-slate-200 dark:border-[#3f3b54] bg-white dark:bg-[#1b1929]">
                 <div className="flex items-center justify-between">
                   <p className="text-slate-500 dark:text-[#a19db9] text-sm font-medium">In Maintenance</p>
                   <span className="material-symbols-outlined text-red-500">build</span>
                 </div>
-                <p className="text-slate-900 dark:text-white text-3xl font-bold">5</p>
+                <p className="text-slate-900 dark:text-gray-900 dark:text-white text-3xl font-bold">5</p>
               </div>
             </div>
           </div>
           <div className="px-8 py-4 flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-600 dark:text-slate-400 group-focus-within:text-primary transition-colors">
                   <span className="material-symbols-outlined">search</span>
                 </div>
                 <input className="block w-full pl-12 pr-4 h-12 bg-white dark:bg-[#2b2839] border-none rounded-xl text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#a19db9] focus:ring-2 focus:ring-primary transition-all" placeholder="Search by equipment name, SKU, or serial number..." type="text"/>
@@ -392,7 +392,7 @@ const AdminDashboard = () => {
                           <span className="material-symbols-outlined text-primary">photo_camera</span>
                         </div>
                         <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">Sony Alpha A7 IV</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">Sony Alpha A7 IV</p>
                           <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: CAM-SY-A74-001</p>
                         </div>
                       </div>
@@ -409,7 +409,7 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-slate-400 hover:text-primary transition-colors">
+                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
                         <span className="material-symbols-outlined">more_vert</span>
                       </button>
                     </td>
@@ -421,7 +421,7 @@ const AdminDashboard = () => {
                           <span className="material-symbols-outlined text-primary">camera_enhance</span>
                         </div>
                         <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">Canon RF 50mm f/1.2L USM</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">Canon RF 50mm f/1.2L USM</p>
                           <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: LNS-CN-50F12-04</p>
                         </div>
                       </div>
@@ -438,7 +438,7 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-slate-400 hover:text-primary transition-colors">
+                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
                         <span className="material-symbols-outlined">more_vert</span>
                       </button>
                     </td>
@@ -450,7 +450,7 @@ const AdminDashboard = () => {
                           <span className="material-symbols-outlined text-primary">lightbulb</span>
                         </div>
                         <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">Aputure Light Storm 600d Pro</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">Aputure Light Storm 600d Pro</p>
                           <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: LGT-AP-600D-12</p>
                         </div>
                       </div>
@@ -467,7 +467,7 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-slate-400 hover:text-primary transition-colors">
+                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
                         <span className="material-symbols-outlined">more_vert</span>
                       </button>
                     </td>
@@ -479,7 +479,7 @@ const AdminDashboard = () => {
                           <span className="material-symbols-outlined text-primary">videocam</span>
                         </div>
                         <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">DJI RS 3 Gimbal Stabilizer</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">DJI RS 3 Gimbal Stabilizer</p>
                           <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: GIM-DJ-RS3-08</p>
                         </div>
                       </div>
@@ -496,7 +496,7 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-slate-400 hover:text-primary transition-colors">
+                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
                         <span className="material-symbols-outlined">more_vert</span>
                       </button>
                     </td>
@@ -504,7 +504,7 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
               <div className="p-6 border-t border-slate-200 dark:border-[#3f3b54] flex items-center justify-between">
-                <p className="text-xs text-slate-500 dark:text-[#a19db9]">Showing <span className="font-bold text-slate-900 dark:text-white">1 - 4</span> of <span className="font-bold text-slate-900 dark:text-white">124</span> results</p>
+                <p className="text-xs text-slate-500 dark:text-[#a19db9]">Showing <span className="font-bold text-slate-900 dark:text-white">1 - 4</span> of <span className="font-bold text-slate-900 dark:text-gray-900 dark:text-white">124</span> results</p>
                 <div className="flex gap-2">
                   <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#3f3b54] text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#2b2839] transition-colors">Previous</button>
                   <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#3f3b54] text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#2b2839] transition-colors">Next</button>
@@ -674,14 +674,14 @@ const AdminDashboard = () => {
           </div>
           <div className="bg-primary rounded-xl p-8 relative overflow-hidden group">
             <div className="relative z-10">
-              <h3 className="text-xl font-bold text-white mb-2">Upgrade Equipment</h3>
-              <p className="text-white/80 text-sm max-w-[240px] mb-6">Explore the new rental marketplace and refresh your studio gear with member discounts.</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Upgrade Equipment</h3>
+              <p className="text-gray-900 dark:text-white/80 text-sm max-w-[240px] mb-6">Explore the new rental marketplace and refresh your studio gear with member discounts.</p>
               <button className="bg-white text-primary px-6 py-2.5 rounded-xl font-bold text-sm shadow-xl hover:bg-slate-50 transition-colors">
                 Browse Marketplace
               </button>
             </div>
             <div className="absolute -right-10 -bottom-10 size-48 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform"></div>
-            <div className="absolute top-0 right-10 size-24 bg-primary-light/20 border-white/10 border-4 rounded-full -mt-8"></div>
+            <div className="absolute top-0 right-10 size-24 bg-primary-light/20 border-gray-300 dark:border-white/10 border-4 rounded-full -mt-8"></div>
           </div>
         </div>
       </div>
@@ -689,12 +689,12 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-gray-900 dark:text-white min-h-screen">
       <div className="flex h-screen overflow-hidden">
         <aside className="w-64 bg-background-light dark:bg-surface-dark border-r border-slate-200 dark:border-border-dark flex flex-col justify-between p-6">
           <div className="flex flex-col gap-8">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white">
+              <div className="size-10 rounded-full bg-primary flex items-center justify-center text-gray-900 dark:text-white">
                 <span className="material-symbols-outlined">auto_awesome</span>
               </div>
               <div className="flex flex-col">
@@ -723,7 +723,7 @@ const AdminDashboard = () => {
               </Link>
             </nav>
           </div>
-          <button className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all">
+          <button className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all">
             <span className="material-symbols-outlined text-sm">add</span>
             <span>New Booking</span>
           </button>
@@ -747,7 +747,7 @@ const AdminDashboard = () => {
               <div className="relative w-full max-w-md">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-text text-xl">search</span>
                 <input 
-                  className="w-full bg-slate-100 dark:bg-border-dark border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-white" 
+                  className="w-full bg-slate-100 dark:bg-border-dark border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-gray-900 dark:text-white" 
                   placeholder={location.pathname === '/admin/bookings' ? 'Search bookings...' : location.pathname === '/admin/inventory' ? 'Search inventory...' : 'Search bookings, gear, or clients...'} 
                   type="text"
                 />
@@ -762,7 +762,7 @@ const AdminDashboard = () => {
                   <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">
                     <span className="material-symbols-outlined">help_outline</span>
                   </button>
-                  <button className="bg-primary text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
+                  <button className="bg-primary text-gray-900 dark:text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
                     <span className="material-symbols-outlined text-lg">add</span>
                     {location.pathname === '/admin/bookings' ? 'New Booking' : 'Add Item'}
                   </button>

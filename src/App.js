@@ -48,7 +48,7 @@ function App() {
   if (userType === 'customer') {
     return (
       <Router>
-        <div className="min-h-screen bg-background-dark">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/photoshoots" element={<PhotoshootBookings />} />
@@ -72,7 +72,7 @@ function App() {
   // Admin UI Routes with Sidebar
   return (
     <Router>
-      <div className="min-h-screen bg-background-dark">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         <Routes>
           <Route path="/" element={<AdminDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
