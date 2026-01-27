@@ -1,107 +1,148 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import '../rangeSlider.css';
 
 const GearRentals = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('Cameras');
-  const [selectedBrands, setSelectedBrands] = useState(['Sony']);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedBrands, setSelectedBrands] = useState([]);
   const [cartCount, setCartCount] = useState(2);
+  const [categories, setCategories] = useState([]);
+  const [allBrands, setAllBrands] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [gearItems, setGearItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const [showBrands, setShowBrands] = useState(true);
+  const [showPriceRange, setShowPriceRange] = useState(false);
+  const [priceRange, setPriceRange] = useState([50, 300]);
+  const visibleCategories = categories.slice(0, 4);
+  const hiddenCategories = categories.slice(4);
 
-  const categories = ['Cameras', 'Lenses', 'Lighting', 'Audio', 'Accessories'];
-  const brands = ['Sony', 'Canon', 'Nikon', 'RED Digital'];
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const gearItems = [
-    {
-      id: 1,
-      name: 'Sony Alpha a7R V',
-      category: 'Mirrorless',
-      description: '61MP Full-Frame, 8K Video, AI Focus',
-      price: 149,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAYlHJJDU-jH4U4Ai9anVzjYajO9Ym52D2rrTpdsgjksahExXEc-PlCSXJ6OZix3sFeEZM99dbbJ84Rv8jaP6DI8ZtdNf5MuW8I6dro7Qoy8RYbd0iYco5jx6fkAEMA8galBdkzg-wP3henLMpHs5DLppduox2sROY41isSzSJloJhm9lpEyv6ivsxi3cUKNJTACWzEq-vnDkMUMzfWtqRm_yWOzfVfMA-mPPkLYJczsV66d5NJPCSIoBJIZ3CggA0ThWsOMO8oHVN-',
-      status: 'Available',
-      condition: 'New',
-      tags: ['E-MOUNT', '4K/60P']
-    },
-    {
-      id: 2,
-      name: 'Canon EOS R5',
-      category: 'Mirrorless',
-      description: '45MP Full-Frame, 8K Raw, IBIS',
-      price: 125,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCI-xyTmpiOf0e94YwnEAZO-qGigKtXCG8BWRD8kNFzIngyRWNxnAJ12nij-ZxVE4xZ3yVCBKbJ0S93iOrW12FkgbbgsFJv96rWzCWBzTNeNTTJJy_fQZm4hCwy0iFOZmcfZhpuLtgQo-EaNsiPZmQtqcWR7gdCdoGE5G8UJ7Q02aTbpCmYkTzT60dZ20oaXaD0Y9wJWYFRi6AtciUJPUM_94Xny_PoF0aqzrLSuZtEpeWrQRVQX_iHjOnCoPhELjgQdLMGbcQBacxC',
-      status: 'Available',
-      condition: 'Popular',
-      tags: ['RF-MOUNT', 'LOG-3']
-    },
-    {
-      id: 3,
-      name: 'Nikon Z9 Body',
-      category: 'Mirrorless',
-      description: '45.7MP, 120 fps Stills, 8K/60p',
-      price: 195,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDm2Rcn1ClLKzbvgvMg8x44dec62JscVz5G0vwLUpnBRBT0q8g4S3xPxAwjw2J85olAiFidai-rbDzsQ3ktDZD9mrVxGyueNitKxKKHSLETMDClb730SwwYfrtPH2-PnbhjTpzXWLAjI9ZWzKS84LoBTW_o391spYKgZ-_xz2gwdskrtHk1SH8ZCvokNS3HRLRmJDzLiEQ9qLP2yUOHvQ1s_gmQ96kotOjJyK3lMCART5B7PvI02YanE9YPFQChVKAr9QdIkQ3xw4Ht',
-      status: 'Low Stock',
-      condition: 'Pro',
-      tags: ['Z-MOUNT', 'WEATHER SEALED']
-    },
-    {
-      id: 4,
-      name: 'RED KOMODO 6K',
-      category: 'Cinema',
-      description: 'Super 35 Sensor, Global Shutter',
-      price: 350,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAlw4tElAJ0yZe6NSRBAEwRJggXDfQ_cNxKBTaaXWFC7qTV7a2clKfxN9BQHgpiHBt79CLTfDvvH_ZPp1Ye4U_ExlqxU7AFaxsf8BqCmwS1U9nzNVEhHeldsuawJ0Mp5g6CeBeaHMiyUv-d86Pp0ca-iGAYmJIseTsEh-T8DdaojkvqTxI4o2LSYBSsYySnoNc5amZugPHqrIhldVaRFYf9CzhXmXYO6dHtYHYydIhdbsqR1GBuyLDyYtvWlB1RKoLDRD1A_dfdEP4u',
-      status: 'Available',
-      condition: 'Premium',
-      tags: ['RF/PL', 'RAW']
-    },
-    {
-      id: 5,
-      name: 'Sony FX6',
-      category: 'Cinema',
-      description: '4K Full-Frame, 15+ Stops Range',
-      price: 220,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA5IlRUPMeQqqiNfiuqPrNnQc2ebhMZTRjW7zdDPb1KciJSNnRAdqpVi5xbowRVKXuM8MYkas5cBuHWf1QRvLp1hzO5EkDMWoQCsTkGbaX7gwTkyg7BMypTeIA-ClU_wF_EhzgwF8NVSoOvT8vpYISHaJpqI2R4WGMGhafu1RqH_sT0MCgvK78lgNXVAYNivl01WdaX8CQsQeKPEQpvJZhye9zufbNLRp8cK4HO46FJ8xyKpaFgmlMbUi8vh7Bq7YHHEw211Uw7LQnH',
-      status: 'Available',
-      condition: 'Top Rated',
-      tags: ['E-MOUNT', 'SDI/XLR']
-    },
-    {
-      id: 6,
-      name: 'Sony Alpha a7 IV',
-      category: 'Mirrorless',
-      description: '33MP Full-Frame, 4K/60p',
-      price: 85,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCj9wqkxbZj5GhVTZSQAodzOeaHEIVigH3sUbIvncc1sz4BZuPUyu9klDtbmPvxG4Dpl3WmJd0Zi7dGEeVCpnU8NNcrdcbw2Afe9oAVz2x8FwPgazwzdEjfaj8gREuHwNfX7BVFtM4GizsqbriPsAae8xVgcl_cHbmWrPXTS6E5dko0eWVFWPde_KK7dNNj5-aF5Acgi9wZ4GzBE1qcIYL3baQlCeeUK62reedx_s7dVpYrxQyVBUQy3vlxWvZ-972ZnIzf1hqChg77',
-      status: 'Fully Booked',
-      condition: '',
-      tags: ['E-MOUNT']
+  useEffect(() => {
+    filterBrandsByCategory();
+  }, [selectedCategory, allBrands]);
+
+  const filterGear = async (category = selectedCategory, brands = selectedBrands, priceMin = priceRange[0], priceMax = priceRange[1], page = 0) => {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: '9'
+      });
+      
+      if (category) params.append('category', category);
+      if (brands.length > 0) {
+        brands.forEach(brand => params.append('brands', brand));
+      }
+      if (priceMin > 50) params.append('minPrice', priceMin);
+      if (priceMax < 500) params.append('maxPrice', priceMax);
+      
+      const endpoint = category || brands.length > 0 || priceMin > 50 || priceMax < 500 
+        ? `http://localhost:5555/api/gear/filter?${params}`
+        : `http://localhost:5555/api/gear?${params}`;
+      
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      setGearItems(data.content || data);
+      setTotalPages(data.totalPages || 1);
+      setCurrentPage(data.currentPage || page);
+    } catch (error) {
+      console.error('Failed to filter gear:', error);
     }
-  ];
+  };
+
+  const filterBrandsByCategory = () => {
+    if (!allBrands.length) {
+      setBrands([]);
+      return;
+    }
+    
+    if (!selectedCategory) {
+      setBrands(allBrands.map(brand => brand.name));
+      return;
+    }
+    
+    const filteredBrands = allBrands.filter(brand => 
+      brand.category?.name === selectedCategory || brand.categoryName === selectedCategory
+    );
+    
+    setBrands(filteredBrands.map(brand => brand.name));
+    setSelectedBrands([]);
+  };
+
+  const loadData = async () => {
+    try {
+      const [categoriesRes, brandsRes, gearRes] = await Promise.all([
+        fetch('http://localhost:5555/api/settings/categories'),
+        fetch('http://localhost:5555/api/settings/brands'),
+        fetch('http://localhost:5555/api/gear')
+      ]);
+
+      if (categoriesRes.ok) {
+        const categoriesData = await categoriesRes.json();
+        setCategories(categoriesData.map(cat => cat.name));
+      }
+
+      if (brandsRes.ok) {
+        const brandsData = await brandsRes.json();
+        console.log('Brands data:', brandsData); // Debug log
+        setAllBrands(brandsData); // Store all brands with category info
+      }
+
+      if (gearRes.ok) {
+        const gearData = await gearRes.json();
+        setGearItems(gearData.content || gearData);
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBrandToggle = (brand) => {
-    setSelectedBrands(prev => 
-      prev.includes(brand) 
-        ? prev.filter(b => b !== brand)
-        : [...prev, brand]
-    );
+    const newBrands = selectedBrands.includes(brand) 
+      ? selectedBrands.filter(b => b !== brand)
+      : [...selectedBrands, brand];
+    setSelectedBrands(newBrands);
+    filterGear(selectedCategory, newBrands, priceRange[0], priceRange[1]);
   };
 
   const getStatusBadge = (status) => {
     const statusStyles = {
+      'In Stock': 'bg-green-500 text-gray-900 dark:text-white',
       'Available': 'bg-green-500 text-gray-900 dark:text-white',
       'Low Stock': 'bg-amber-500 text-gray-900 dark:text-white',
-      'Fully Booked': 'bg-red-500 text-gray-900 dark:text-white'
+      'Out on Rent': 'bg-red-500 text-gray-900 dark:text-white',
+      'Fully Booked': 'bg-red-500 text-gray-900 dark:text-white',
+      'Unavailable': 'bg-gray-500 text-gray-900 dark:text-white'
     };
     
     return (
-      <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider flex items-center gap-1 ${statusStyles[status]}`}>
-        {status !== 'Fully Booked' && <span className="size-1.5 bg-white rounded-full animate-pulse"></span>}
+      <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider flex items-center gap-1 ${statusStyles[status] || 'bg-gray-500 text-gray-900 dark:text-white'}`}>
+        {!['Out on Rent', 'Fully Booked', 'Unavailable'].includes(status) && <span className="size-1.5 bg-white rounded-full animate-pulse"></span>}
         {status}
       </span>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+        <Navigation />
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
@@ -116,11 +157,14 @@ const GearRentals = () => {
           </div>
           
           {/* Category Tabs */}
-          <div className="flex gap-2 flex-wrap bg-slate-100 dark:bg-[#2b2839]/30 p-1.5 rounded-2xl">
-            {categories.map((category) => (
+          <div className="flex gap-2 flex-wrap bg-slate-100 dark:bg-[#2b2839]/30 p-1.5 rounded-2xl relative">
+            {visibleCategories.map((category) => (
               <div 
                 key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  filterGear(category, selectedBrands, priceRange[0], priceRange[1]);
+                }}
                 className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl px-6 cursor-pointer transition-colors ${
                   selectedCategory === category 
                     ? 'bg-primary shadow-lg shadow-primary/20' 
@@ -132,6 +176,36 @@ const GearRentals = () => {
                 </p>
               </div>
             ))}
+            {hiddenCategories.length > 0 && (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowMoreCategories(!showMoreCategories)}
+                  className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl px-4 bg-transparent hover:bg-slate-200 dark:hover:bg-[#2b2839] cursor-pointer transition-colors"
+                >
+                  <span className="text-sm font-bold text-slate-600 dark:text-[#a19db9]">More</span>
+                  <span className="material-symbols-outlined text-sm text-slate-600 dark:text-[#a19db9]">expand_more</span>
+                </button>
+                {showMoreCategories && (
+                  <div className="absolute top-12 right-0 bg-white dark:bg-[#2b2839] border border-slate-200 dark:border-slate-600 rounded-xl shadow-lg z-10 min-w-[150px]">
+                    {hiddenCategories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setShowMoreCategories(false);
+                          filterGear(category, selectedBrands, priceRange[0], priceRange[1]);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 first:rounded-t-xl last:rounded-b-xl ${
+                          selectedCategory === category ? 'text-primary bg-primary/10' : 'text-slate-700 dark:text-white'
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -145,49 +219,101 @@ const GearRentals = () => {
                   Filters
                 </h3>
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between group cursor-pointer px-3 py-2 rounded-xl bg-primary/10 dark:bg-[#2b2839]">
+                  <div className="flex items-center justify-between group cursor-pointer px-3 py-2 rounded-xl bg-primary/10 dark:bg-[#2b2839]" onClick={() => setShowBrands(!showBrands)}>
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined text-primary dark:text-gray-900 dark:text-white text-[20px]">sell</span>
                       <p className="text-primary dark:text-gray-900 dark:text-white text-sm font-bold">Brands</p>
                     </div>
-                    <span className="material-symbols-outlined text-primary dark:text-gray-900 dark:text-white text-[18px]">expand_less</span>
+                    <span className="material-symbols-outlined text-primary dark:text-gray-900 dark:text-white text-[18px]">{showBrands ? 'expand_less' : 'expand_more'}</span>
                   </div>
-                  <div className="px-3 py-2 space-y-1">
-                    {brands.map((brand) => (
-                      <label key={brand} className="flex items-center gap-x-3 py-2 cursor-pointer">
-                        <input 
-                          checked={selectedBrands.includes(brand)}
-                          onChange={() => handleBrandToggle(brand)}
-                          className="h-5 w-5 rounded border-slate-300 dark:border-[#3f3b54] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0" 
-                          type="checkbox"
-                        />
-                        <p className="text-slate-700 dark:text-gray-900 dark:text-white text-sm font-medium">{brand}</p>
-                      </label>
-                    ))}
-                  </div>
+                  {showBrands && (
+                    <div className="px-3 py-2 space-y-1 max-h-60 overflow-y-auto">
+                      {brands.map((brand) => (
+                        <label key={brand} className="flex items-center gap-x-3 py-2 cursor-pointer">
+                          <input 
+                            checked={selectedBrands.includes(brand)}
+                            onChange={() => handleBrandToggle(brand)}
+                            className="h-5 w-5 rounded border-slate-300 dark:border-[#3f3b54] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0" 
+                            type="checkbox"
+                          />
+                          <p className="text-slate-700 dark:text-gray-900 dark:text-white text-sm font-medium">{brand}</p>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Price Range */}
               <div>
-                <div className="flex items-center gap-3 px-3 py-2 mb-2 hover:bg-slate-100 dark:hover:bg-[#2b2839] rounded-xl cursor-pointer transition-colors">
-                  <span className="material-symbols-outlined text-slate-500 dark:text-[#a19db9] text-[20px]">payments</span>
-                  <p className="text-slate-700 dark:text-[#a19db9] text-sm font-medium">Price Range</p>
-                </div>
-                <div className="px-3">
-                  <div className="h-1 w-full bg-slate-200 dark:bg-[#3f3b54] rounded-full relative">
-                    <div className="absolute left-1/4 right-0 h-1 bg-primary rounded-full"></div>
-                    <div className="absolute left-1/4 -top-1.5 size-4 bg-primary border-2 border-white dark:border-background-dark rounded-full shadow-md"></div>
-                    <div className="absolute right-0 -top-1.5 size-4 bg-primary border-2 border-white dark:border-background-dark rounded-full shadow-md"></div>
+                <div className="flex items-center justify-between gap-3 px-3 py-2 mb-2 hover:bg-slate-100 dark:hover:bg-[#2b2839] rounded-xl cursor-pointer transition-colors" onClick={() => setShowPriceRange(!showPriceRange)}>
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-slate-500 dark:text-[#a19db9] text-[20px]">payments</span>
+                    <p className="text-slate-700 dark:text-[#a19db9] text-sm font-medium">Price Range</p>
                   </div>
-                  <div className="flex justify-between mt-4">
-                    <span className="text-xs font-bold text-slate-500">$50</span>
-                    <span className="text-xs font-bold text-slate-900 dark:text-gray-900 dark:text-white">$500+</span>
-                  </div>
+                  <span className="material-symbols-outlined text-slate-500 dark:text-[#a19db9] text-[18px]">{showPriceRange ? 'expand_less' : 'expand_more'}</span>
                 </div>
+                {showPriceRange && (
+                  <div className="px-3">
+                    <div className="mb-4">
+                      <div className="relative">
+                        <div className="h-2 bg-slate-200 dark:bg-[#3f3b54] rounded-full relative">
+                          <div 
+                            className="absolute h-2 bg-primary rounded-full"
+                            style={{
+                              left: `${((priceRange[0] - 50) / (500 - 50)) * 100}%`,
+                              right: `${100 - ((priceRange[1] - 50) / (500 - 50)) * 100}%`
+                            }}
+                          />
+                        </div>
+                        <div className="relative -mt-2">
+                          <input 
+                            type="range" 
+                            min="50" 
+                            max="500" 
+                            value={priceRange[0]} 
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (val <= priceRange[1] - 10) {
+                                setPriceRange([val, priceRange[1]]);
+                                filterGear();
+                              }
+                            }}
+                            className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer range-thumb"
+                          />
+                          <input 
+                            type="range" 
+                            min="50" 
+                            max="500" 
+                            value={priceRange[1]} 
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (val >= priceRange[0] + 10) {
+                                setPriceRange([priceRange[0], val]);
+                                filterGear();
+                              }
+                            }}
+                            className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer range-thumb"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500">${priceRange[0]}</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">${priceRange[1]}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <button className="w-full mt-4 flex items-center justify-center overflow-hidden rounded-xl h-11 px-4 bg-slate-200 dark:bg-[#2b2839] text-slate-900 dark:text-white text-sm font-bold hover:bg-slate-300 dark:hover:bg-[#3f3b54] transition-colors">
+              <button 
+                onClick={() => {
+                  setSelectedCategory('');
+                  setSelectedBrands([]);
+                  setPriceRange([50, 500]);
+                  filterGear('', [], 50, 500, 0);
+                }}
+                className="w-full mt-4 flex items-center justify-center overflow-hidden rounded-xl h-11 px-4 bg-slate-200 dark:bg-[#2b2839] text-slate-900 dark:text-white text-sm font-bold hover:bg-slate-300 dark:hover:bg-[#3f3b54] transition-colors"
+              >
                 <span className="truncate">Reset All Filters</span>
               </button>
             </div>
@@ -196,95 +322,115 @@ const GearRentals = () => {
           {/* Product Grid */}
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {gearItems.map((item) => (
-                <div key={item.id} className={`group bg-white dark:bg-[#1a1630] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#2b2839] hover:border-primary dark:hover:border-primary/50 transition-all shadow-sm hover:shadow-xl hover:shadow-primary/5 ${item.status === 'Fully Booked' ? 'opacity-80' : ''}`}>
-                  <div className="relative aspect-[4/3] bg-slate-100 dark:bg-[#25213b]">
-                    <img 
-                      className={`w-full h-full object-cover ${item.status === 'Fully Booked' ? 'grayscale' : ''}`}
-                      src={item.image}
-                      alt={item.name}
-                    />
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      {getStatusBadge(item.status)}
-                    </div>
-                    {item.status === 'Fully Booked' && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-gray-900 dark:text-white font-bold text-sm uppercase tracking-widest bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">Fully Booked</span>
+              {gearItems.map((item) => {
+                const isUnavailable = ['Out on Rent', 'Fully Booked', 'Unavailable'].includes(item.status);
+                return (
+                  <div key={item.id} className={`group bg-white dark:bg-[#1a1630] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#2b2839] hover:border-primary dark:hover:border-primary/50 transition-all shadow-sm hover:shadow-xl hover:shadow-primary/5 ${isUnavailable ? 'opacity-80' : ''}`}>
+                    <div className="relative aspect-[4/3] bg-slate-100 dark:bg-[#25213b]">
+                      {item.images && item.images.length > 0 ? (
+                        <img 
+                          className={`w-full h-full object-cover ${isUnavailable ? 'grayscale' : ''}`}
+                          src={`http://localhost:5555${item.images[0]}`}
+                          alt={item.name}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="material-symbols-outlined text-6xl text-slate-300">photo_camera</span>
+                        </div>
+                      )}
+                      <div className="absolute top-4 left-4 flex gap-2">
+                        {getStatusBadge(item.status)}
                       </div>
-                    )}
-                    {item.status !== 'Fully Booked' && (
-                      <div className="absolute top-4 right-4">
-                        <button className="size-8 bg-black/20 backdrop-blur-md rounded-full text-gray-900 dark:text-white flex items-center justify-center hover:bg-primary transition-colors">
-                          <span className="material-symbols-outlined text-[18px]">favorite</span>
+                      {isUnavailable && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <span className="text-gray-900 dark:text-white font-bold text-sm uppercase tracking-widest bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">{item.status}</span>
+                        </div>
+                      )}
+                      {!isUnavailable && (
+                        <div className="absolute top-4 right-4">
+                          <button className="size-8 bg-black/20 backdrop-blur-md rounded-full text-gray-900 dark:text-white flex items-center justify-center hover:bg-primary transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">favorite</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5 flex flex-col gap-4">
+                      <div>
+                        <div className="flex justify-between items-start mb-1">
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${isUnavailable ? 'text-gray-600 dark:text-slate-400' : 'text-primary'}`}>
+                            {item.category}
+                          </span>
+                          {item.condition && (
+                            <span className="text-slate-400 dark:text-[#a19db9] text-xs font-medium">{item.condition}</span>
+                          )}
+                        </div>
+                        <h3 className={`text-lg font-bold leading-tight transition-colors ${isUnavailable ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-gray-900 dark:text-white group-hover:text-primary'}`}>
+                          {item.name}
+                        </h3>
+                        <p className="text-slate-500 dark:text-[#a19db9] text-sm mt-1">{item.description}</p>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 dark:border-[#2b2839]">
+                        <div>
+                          <p className="text-slate-400 dark:text-[#a19db9] text-[10px] font-bold uppercase tracking-tighter">Daily Rate</p>
+                          <p className="text-slate-900 dark:text-gray-900 dark:text-white text-xl font-black">
+                            ${item.rentalPrice}<span className="text-sm font-normal text-[#a19db9]">/day</span>
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => !isUnavailable && navigate(`/gear/${item.id}`)}
+                          className={`rounded-xl h-10 px-4 font-bold text-sm transition-transform flex items-center gap-2 ${
+                            isUnavailable 
+                              ? 'bg-slate-200 dark:bg-[#2b2839] text-gray-600 dark:text-slate-400 cursor-not-allowed' 
+                              : 'bg-primary hover:bg-primary/90 text-gray-900 dark:text-white active:scale-95'
+                          }`}
+                          disabled={isUnavailable}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">
+                            {isUnavailable ? 'schedule' : 'add'}
+                          </span>
+                          {isUnavailable ? 'Waitlist' : 'Rent'}
                         </button>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-5 flex flex-col gap-4">
-                    <div>
-                      <div className="flex justify-between items-start mb-1">
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'Fully Booked' ? 'text-gray-600 dark:text-slate-400' : 'text-primary'}`}>
-                          {item.category}
-                        </span>
-                        {item.condition && (
-                          <span className="text-slate-400 dark:text-[#a19db9] text-xs font-medium">{item.condition}</span>
-                        )}
-                      </div>
-                      <h3 className={`text-lg font-bold leading-tight transition-colors ${item.status === 'Fully Booked' ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-gray-900 dark:text-white group-hover:text-primary'}`}>
-                        {item.name}
-                      </h3>
-                      <p className="text-slate-500 dark:text-[#a19db9] text-sm mt-1">{item.description}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {item.tags.map((tag) => (
-                        <span key={tag} className={`px-2 py-1 rounded text-[10px] font-bold ${item.status === 'Fully Booked' ? 'bg-slate-100 dark:bg-[#2b2839] text-slate-400' : 'bg-slate-100 dark:bg-[#2b2839] text-slate-600 dark:text-[#a19db9]'}`}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between mt-2 pt-4 border-t border-slate-100 dark:border-[#2b2839]">
-                      <div>
-                        <p className="text-slate-400 dark:text-[#a19db9] text-[10px] font-bold uppercase tracking-tighter">Daily Rate</p>
-                        <p className="text-slate-900 dark:text-gray-900 dark:text-white text-xl font-black">
-                          ${item.price}<span className="text-sm font-normal text-[#a19db9]">/day</span>
-                        </p>
-                      </div>
-                      <button 
-                        onClick={() => item.status !== 'Fully Booked' && navigate(`/gear/${item.id}`)}
-                        className={`rounded-xl h-10 px-4 font-bold text-sm transition-transform flex items-center gap-2 ${
-                          item.status === 'Fully Booked' 
-                            ? 'bg-slate-200 dark:bg-[#2b2839] text-gray-600 dark:text-slate-400 cursor-not-allowed' 
-                            : 'bg-primary hover:bg-primary/90 text-gray-900 dark:text-white active:scale-95'
-                        }`}
-                        disabled={item.status === 'Fully Booked'}
-                      >
-                        <span className="material-symbols-outlined text-[18px]">
-                          {item.status === 'Fully Booked' ? 'schedule' : 'add'}
-                        </span>
-                        {item.status === 'Fully Booked' ? 'Waitlist' : 'Rent'}
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Pagination */}
-            <div className="mt-12 flex justify-center items-center gap-4">
-              <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54]">
-                <span className="material-symbols-outlined">chevron_left</span>
-              </button>
-              <div className="flex gap-2">
-                <button className="size-10 flex items-center justify-center rounded-xl bg-primary text-gray-900 dark:text-white font-bold">1</button>
-                <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] font-medium">2</button>
-                <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] font-medium">3</button>
-                <span className="text-slate-500 py-2">...</span>
-                <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] font-medium">8</button>
+            {totalPages > 1 && (
+              <div className="mt-12 flex justify-center items-center gap-4">
+                <button 
+                  onClick={() => currentPage > 0 && filterGear(selectedCategory, selectedBrands, priceRange[0], priceRange[1], currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined">chevron_left</span>
+                </button>
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button 
+                      key={i}
+                      onClick={() => filterGear(selectedCategory, selectedBrands, priceRange[0], priceRange[1], i)}
+                      className={`size-10 flex items-center justify-center rounded-xl font-bold ${
+                        i === currentPage 
+                          ? 'bg-primary text-white' 
+                          : 'bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54]'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <button 
+                  onClick={() => currentPage < totalPages - 1 && filterGear(selectedCategory, selectedBrands, priceRange[0], priceRange[1], currentPage + 1)}
+                  disabled={currentPage >= totalPages - 1}
+                  className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54] disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
               </div>
-              <button className="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#2b2839] text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3f3b54]">
-                <span className="material-symbols-outlined">chevron_right</span>
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </main>

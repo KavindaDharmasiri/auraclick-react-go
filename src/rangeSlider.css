@@ -1,0 +1,30 @@
+/* Dual Range Slider Styles */
+.range-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  background: transparent;
+  outline: none;
+}
+
+.range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #3211d4;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+}
+
+.range-thumb::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #3211d4;
+  cursor: pointer;
+  border: none;
+  position: relative;
+  z-index: 10;
+}
