@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import './App.css';
 
 // Import components
@@ -15,6 +16,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Cart from './pages/Cart';
+import AuthGuard from './components/AuthGuard';
 
 function App() {
   const [userType, setUserType] = useState('customer');
@@ -49,20 +51,21 @@ function App() {
     return (
       <Router>
         <div className="min-h-screen bg-white dark:bg-gray-900">
+          <Toaster position="top-right" />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/photoshoots" element={<PhotoshootBookings />} />
-            <Route path="/gear-rentals" element={<GearRentals />} />
-            <Route path="/gear/:id" element={<GearDetail />} />
-            <Route path="/studio" element={<StudioBookings />} />
-            <Route path="/weddings" element={<WeddingPlanning />} />
-            <Route path="/ai-booking" element={<AIBooking />} />
+            <Route path="/login" element={<AuthGuard requireAuth={false}><Login /></AuthGuard>} />
+            <Route path="/signup" element={<AuthGuard requireAuth={false}><Signup /></AuthGuard>} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/*" element={<AdminDashboard />} />
+            <Route path="/photoshoots" element={<AuthGuard><PhotoshootBookings /></AuthGuard>} />
+            <Route path="/gear-rentals" element={<AuthGuard><GearRentals /></AuthGuard>} />
+            <Route path="/gear/:id" element={<AuthGuard><GearDetail /></AuthGuard>} />
+            <Route path="/studio" element={<AuthGuard><StudioBookings /></AuthGuard>} />
+            <Route path="/weddings" element={<AuthGuard><WeddingPlanning /></AuthGuard>} />
+            <Route path="/ai-booking" element={<AuthGuard><AIBooking /></AuthGuard>} />
+            <Route path="/cart" element={<AuthGuard><Cart /></AuthGuard>} />
+            <Route path="/admin" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+            <Route path="/admin/*" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
           </Routes>
         </div>
       </Router>
@@ -73,15 +76,16 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-white dark:bg-gray-900">
+        <Toaster position="top-right" />
         <Routes>
-          <Route path="/" element={<AdminDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/bookings" element={<AdminDashboard />} />
-          <Route path="/admin/inventory" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminDashboard />} />
-          <Route path="/admin/analytics" element={<AdminDashboard />} />
-          <Route path="/admin/settings" element={<AdminDashboard />} />
-          <Route path="/*" element={<AdminDashboard />} />
+          <Route path="/" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/admin" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/admin/bookings" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/admin/inventory" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/admin/users" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/admin/analytics" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/admin/settings" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+          <Route path="/*" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
         </Routes>
       </div>
     </Router>

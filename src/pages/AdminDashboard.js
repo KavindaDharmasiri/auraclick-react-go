@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import authService from '../services/authService';
+import gearService from '../services/gearService';
+import toast from 'react-hot-toast';
 
 // Mock data
 const mockBookings = [
@@ -64,7 +68,206 @@ const mockBookings = [
 const AdminDashboard = () => {
   const [userType, setUserType] = useState('customer');
   const [isDark, setIsDark] = useState(false);
+  const [showAddGearModal, setShowAddGearModal] = useState(false);
+  const [showEditGearModal, setShowEditGearModal] = useState(false);
+  const [editingGear, setEditingGear] = useState(null);
+  const [gearList, setGearList] = useState([]);
+  const [user, setUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [pageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const categoryButtonRef = useRef(null);
+  const statusButtonRef = useRef(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [showAddBrandModal, setShowAddBrandModal] = useState(false);
+  const [newBrand, setNewBrand] = useState({ name: '', categoryId: '' });
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showAddStatusModal, setShowAddStatusModal] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [newStatus, setNewStatus] = useState('');
+  const [newGear, setNewGear] = useState({
+    name: '',
+    parentSku: '', // Master SKU for product family
+    variantSku: '', // Child SKU for specific variant
+    upc: '',
+    ean: '',
+    category: '',
+    subcategory: '',
+    stock: '',
+    totalStock: '',
+    rentalPrice: '',
+    status: 'In Stock',
+    description: '',
+    brand: '',
+    model: '',
+    serialNumber: '',
+    condition: 'Excellent',
+    image: [],
+    attributes: {}, // Color, Size, Version etc.
+    location: '', // Warehouse location
+    supplier: '',
+    costPrice: ''
+  });
   const location = useLocation();
+
+  const handleEditGear = (gear) => {
+    console.log('Editing gear:', gear); // Debug log
+    console.log('Current gear status:', gear.status); // Debug log
+    console.log('Available statuses:', statuses); // Debug log
+    
+    setEditingGear(gear);
+    setNewGear({
+      name: gear.name || '',
+      sku: gear.sku || '',
+      category: gear.category || '',
+      stock: gear.stock ? gear.stock.toString() : '',
+      totalStock: gear.totalStock ? gear.totalStock.toString() : '',
+      rentalPrice: gear.rentalPrice ? gear.rentalPrice.toString() : '',
+      status: gear.status || 'In Stock',
+      description: gear.description || '',
+      brand: gear.brand || '',
+      model: gear.model || '',
+      serialNumber: gear.serialNumber || '',
+      condition: gear.condition || 'Excellent',
+      image: []
+    });
+    
+    console.log('Set newGear status to:', gear.status || 'In Stock'); // Debug log
+    setShowEditGearModal(true);
+  };
+
+  const handleUpdateGear = async (e) => {
+    e.preventDefault();
+    try {
+      const gearData = {
+        name: newGear.name,
+        brand: newGear.brand,
+        model: newGear.model,
+        serialNumber: newGear.serialNumber,
+        category: newGear.category,
+        description: newGear.description,
+        stock: parseInt(newGear.stock),
+        totalStock: parseInt(newGear.totalStock),
+        rentalPrice: parseFloat(newGear.rentalPrice),
+        status: newGear.status,
+        condition: newGear.condition
+      };
+
+      console.log('Updating gear with data:', gearData);
+      console.log('Updating gear with status:', newGear.status);
+      console.log('Available statuses:', statuses);
+      
+      await gearService.updateGear(editingGear.id, gearData);
+      toast.success('Gear updated successfully!');
+      
+      // Reset form
+      setNewGear({ name: '', sku: '', category: '', stock: '', totalStock: '', rentalPrice: '', status: 'In Stock', description: '', brand: '', model: '', serialNumber: '', condition: 'Excellent', image: [] });
+      setShowEditGearModal(false);
+      setEditingGear(null);
+      
+      // Force reload with current filters
+      await loadGear(currentPage, searchTerm, selectedCategory, selectedStatus);
+    } catch (error) {
+      console.error('Update error:', error);
+      toast.error(error.message || 'Failed to update gear');
+    }
+  };
+
+  const handleToggleAvailability = async (gear) => {
+    try {
+      const newStatus = gear.status === 'In Stock' ? 'Unavailable' : 'In Stock';
+      await gearService.updateGear(gear.id, { ...gear, status: newStatus });
+      toast.success(`Gear marked as ${newStatus.toLowerCase()}`);
+      
+      // Force reload with current filters
+      await loadGear(currentPage, searchTerm, selectedCategory, selectedStatus);
+    } catch (error) {
+      toast.error('Failed to update gear status');
+    }
+  };
+
+  const generateParentSKU = (category, brand) => {
+    const catCode = getCategoryCode(category);
+    const brandCode = getBrandCode(brand);
+    const sequence = String(Date.now()).slice(-4);
+    return `${catCode}${brandCode}${sequence}`;
+  };
+
+  const generateVariantSKU = (parentSku, attributes) => {
+    const colorCode = attributes.color ? attributes.color.substring(0, 2).toUpperCase() : '';
+    const sizeCode = attributes.size ? attributes.size.substring(0, 2).toUpperCase() : '';
+    const versionCode = attributes.version ? attributes.version.substring(0, 2).toUpperCase() : '';
+    return `${parentSku}-${colorCode}${sizeCode}${versionCode}`;
+  };
+
+  const getCategoryCode = (category) => {
+    const codes = {
+      'Cameras': 'CAM',
+      'Lenses': 'LNS', 
+      'Lighting': 'LGT',
+      'Accessories': 'ACC',
+      'Audio': 'AUD',
+      'Tripods': 'TRP'
+    };
+    return codes[category] || 'GEN';
+  };
+
+  const getBrandCode = (brand) => {
+    const codes = {
+      'Sony': 'SNY',
+      'Canon': 'CAN',
+      'Nikon': 'NIK',
+      'Fujifilm': 'FUJ',
+      'Panasonic': 'PAN',
+      'Olympus': 'OLY',
+      'Aputure': 'APU',
+      'Godox': 'GDX'
+    };
+    return codes[brand] || brand.substring(0, 3).toUpperCase();
+  };
+
+  const validateSKU = (sku) => {
+    // Enterprise SKU validation rules
+    const skuPattern = /^[A-Z]{3}[A-Z]{3}\d{4}(-[A-Z0-9]{2,6})?$/;
+    return skuPattern.test(sku);
+  };
+
+  const handleAddGear = async (e) => {
+    e.preventDefault();
+    try {
+      const gearData = {
+        name: newGear.name,
+        sku: newGear.parentSku,
+        brand: newGear.brand,
+        model: newGear.model,
+        serialNumber: newGear.serialNumber || '',
+        category: newGear.category,
+        description: newGear.description || '',
+        stock: parseInt(newGear.stock) || 0,
+        totalStock: parseInt(newGear.totalStock) || 0,
+        rentalPrice: parseFloat(newGear.rentalPrice) || 0,
+        status: newGear.status,
+        condition: newGear.condition
+      };
+
+      await gearService.createGear(gearData, newGear.image);
+      toast.success('Gear added successfully!');
+      setNewGear({ name: '', sku: '', category: '', stock: '', totalStock: '', rentalPrice: '', status: 'In Stock', description: '', brand: '', model: '', serialNumber: '', condition: 'Excellent', image: [] });
+      setShowAddGearModal(false);
+      loadGear();
+    } catch (error) {
+      toast.error(error.message || 'Failed to add gear');
+    }
+  };
 
   useEffect(() => {
     const type = localStorage.getItem('userType') || 'customer';
@@ -75,7 +278,196 @@ const AdminDashboard = () => {
       setIsDark(true);
       document.documentElement.classList.add('dark');
     }
+
+    // Get user info from localStorage
+    const userInfo = localStorage.getItem('user');
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+    }
+
+    // Load gear data
+    if (type === 'admin') {
+      loadGear();
+      loadCategories();
+      loadStatuses();
+      loadBrands();
+    }
+
+    // Close dropdowns when clicking outside
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowCategoryDropdown(false);
+        setShowStatusDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
   }, []);
+
+  const loadGear = async (page = 0, search = '', category = '', status = '') => {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: pageSize.toString()
+      });
+      
+      if (search) params.append('search', search);
+      if (category) params.append('category', category);
+      if (status) params.append('status', status);
+      
+      const response = await fetch(`http://localhost:5555/api/gear?${params}`);
+      const data = await response.json();
+      
+      setGearList(data.content);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
+      setCurrentPage(data.currentPage);
+    } catch (error) {
+      toast.error('Failed to load gear inventory');
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.map(cat => cat.name));
+      } else {
+        console.error('Failed to load categories:', response.status);
+        // Set default categories if API fails
+        setCategories(['Cameras', 'Lenses', 'Lighting', 'Accessories', 'Audio', 'Tripods']);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      // Set default categories if API fails
+      setCategories(['Cameras', 'Lenses', 'Lighting', 'Accessories', 'Audio', 'Tripods']);
+    }
+  };
+
+  const loadStatuses = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/statuses');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Loaded statuses from API:', data);
+        setStatuses(data.map(status => status.name));
+      } else {
+        console.error('Failed to load statuses:', response.status);
+        // Set default statuses if API fails - including 'Maintain'
+        setStatuses(['In Stock', 'Out on Rent', 'Maintenance', 'Maintain', 'Unavailable', 'Pending']);
+      }
+    } catch (error) {
+      console.error('Failed to load statuses:', error);
+      // Set default statuses if API fails - including 'Maintain'
+      setStatuses(['In Stock', 'Out on Rent', 'Maintenance', 'Maintain', 'Unavailable', 'Pending']);
+    }
+  };
+
+  const addCategory = async (name) => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (response.ok) {
+        loadCategories();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const deleteCategory = async (index) => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/categories');
+      const data = await response.json();
+      const categoryId = data[index]?.id;
+      
+      if (categoryId) {
+        const deleteResponse = await fetch(`http://localhost:5555/api/settings/categories/${categoryId}`, {
+          method: 'DELETE'
+        });
+        if (deleteResponse.ok) {
+          loadCategories();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete category');
+    }
+  };
+
+  const addStatus = async (name) => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/statuses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (response.ok) {
+        loadStatuses();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const deleteStatus = async (index) => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/statuses');
+      const data = await response.json();
+      const statusId = data[index]?.id;
+      
+      if (statusId) {
+        const deleteResponse = await fetch(`http://localhost:5555/api/settings/statuses/${statusId}`, {
+          method: 'DELETE'
+        });
+        if (deleteResponse.ok) {
+          loadStatuses();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete status');
+    }
+  };
+
+  const loadBrands = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/settings/brands');
+      if (response.ok) {
+        const data = await response.json();
+        const brandsWithCategory = data.map(brand => ({
+          id: brand.id,
+          name: brand.name,
+          categoryName: brand.category?.name || 'Unknown'
+        }));
+        setBrands(brandsWithCategory);
+      }
+    } catch (error) {
+      console.error('Failed to load brands:', error);
+    }
+  };
+
+  const deleteBrand = async (brandId) => {
+    try {
+      const response = await fetch(`http://localhost:5555/api/settings/brands/${brandId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        loadBrands();
+      }
+    } catch (error) {
+      console.error('Failed to delete brand');
+    }
+  };
 
   const toggleTheme = () => {
     if (isDark) {
@@ -91,7 +483,7 @@ const AdminDashboard = () => {
 
   if (userType !== 'admin') {
     return (
-      <div className="bg-background-dark text-gray-900 dark:text-white min-h-screen flex items-center justify-center">
+      <div className="bg-background-dark text-slate-900 dark:text-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="size-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <span className="material-symbols-outlined text-4xl text-primary">admin_panel_settings</span>
@@ -104,7 +496,7 @@ const AdminDashboard = () => {
               setUserType('admin');
               window.location.reload();
             }}
-            className="bg-primary hover:bg-primary/90 text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold mr-4"
+            className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold mr-4"
           >
             Switch to Admin
           </button>
@@ -114,7 +506,7 @@ const AdminDashboard = () => {
               setUserType('customer');
               window.location.reload();
             }}
-            className="border border-slate-600 hover:bg-slate-700 text-gray-900 dark:text-white px-6 py-3 rounded-xl font-bold"
+            className="border border-slate-600 hover:bg-slate-700 text-slate-900 dark:text-white px-6 py-3 rounded-xl font-bold"
           >
             Stay as Customer
           </button>
@@ -129,7 +521,7 @@ const AdminDashboard = () => {
         <div className="p-8 flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
-              <p className="text-slate-500 dark:text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Bookings (Month)</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Bookings (Month)</p>
               <div className="flex items-end justify-between">
                 <h3 className="text-3xl font-bold">128</h3>
                 <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
@@ -138,7 +530,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
-              <p className="text-slate-500 dark:text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Confirmations</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Confirmations</p>
               <div className="flex items-end justify-between">
                 <h3 className="text-3xl font-bold">14</h3>
                 <span className="text-[#fa6238] text-sm font-medium flex items-center gap-1">
@@ -147,7 +539,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
-              <p className="text-slate-500 dark:text-gray-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Revenue</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Revenue</p>
               <div className="flex items-end justify-between">
                 <h3 className="text-3xl font-bold">$12,450</h3>
                 <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
@@ -158,19 +550,19 @@ const AdminDashboard = () => {
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-gray-900 dark:text-white rounded-lg text-sm font-medium">
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium">
                 <span className="material-symbols-outlined text-lg">list</span>
                 All Bookings
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
                 <span className="material-symbols-outlined text-lg">camera</span>
                 Photoshoots
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
                 <span className="material-symbols-outlined text-lg">flash_on</span>
                 Studio
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
                 <span className="material-symbols-outlined text-lg">favorite</span>
                 Weddings
               </button>
@@ -246,7 +638,7 @@ const AdminDashboard = () => {
                 <button className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754] disabled:opacity-50">
                   <span className="material-symbols-outlined">chevron_left</span>
                 </button>
-                <button className="size-9 rounded-lg bg-primary text-gray-900 dark:text-white text-sm font-bold">1</button>
+                <button className="size-9 rounded-lg bg-primary text-white text-sm font-bold">1</button>
                 <button className="size-9 rounded-lg border border-slate-200 dark:border-[#3b4754] text-sm hover:bg-slate-100 dark:hover:bg-[#283039]">2</button>
                 <button className="size-9 rounded-lg border border-slate-200 dark:border-[#3b4754] text-sm hover:bg-slate-100 dark:hover:bg-[#283039]">3</button>
                 <button className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754]">
@@ -289,7 +681,7 @@ const AdminDashboard = () => {
                   <span className="material-symbols-outlined text-base">chevron_right</span>
                 </button>
               </div>
-              <div className="grid grid-cols-7 text-center text-[11px] font-bold text-gray-600 dark:text-slate-400 mb-2">
+              <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2">
                 <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
               </div>
               <div className="grid grid-cols-7 gap-1">
@@ -298,7 +690,7 @@ const AdminDashboard = () => {
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">2</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">3</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">4</button>
-                <button className="h-8 flex items-center justify-center text-xs bg-primary text-gray-900 dark:text-white rounded-lg">5</button>
+                <button className="h-8 flex items-center justify-center text-xs bg-primary text-white rounded-lg">5</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">6</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">7</button>
                 <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">8</button>
@@ -334,10 +726,13 @@ const AdminDashboard = () => {
         <div className="flex flex-col h-full">
           <div className="p-8 pb-4 flex flex-wrap justify-between items-end gap-4">
             <div className="flex flex-col gap-1">
-              <h2 className="text-slate-900 dark:text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Gear Inventory</h2>
-              <p className="text-slate-500 dark:text-[#a19db9] text-base">Manage and track 124 professional photography assets</p>
+              <h2 className="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Gear Inventory</h2>
+              <p className="text-slate-500 dark:text-[#a19db9] text-base">Manage and track {totalElements} professional photography assets</p>
             </div>
-            <button className="flex items-center gap-2 px-6 h-12 bg-primary text-gray-900 dark:text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/25">
+            <button 
+              onClick={() => setShowAddGearModal(true)}
+              className="flex items-center gap-2 px-6 h-12 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/25"
+            >
               <span className="material-symbols-outlined">add</span>
               <span>Add New Item</span>
             </button>
@@ -347,51 +742,92 @@ const AdminDashboard = () => {
               <div className="flex flex-col gap-2 rounded-2xl p-6 border border-slate-200 dark:border-[#3f3b54] bg-white dark:bg-[#1b1929]">
                 <div className="flex items-center justify-between">
                   <p className="text-slate-500 dark:text-[#a19db9] text-sm font-medium">Total Assets</p>
-                  <span className="material-symbols-outlined text-gray-600 dark:text-slate-400">inventory</span>
+                  <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">inventory</span>
                 </div>
-                <p className="text-slate-900 dark:text-gray-900 dark:text-white text-3xl font-bold">124</p>
+                <p className="text-slate-900 dark:text-white text-3xl font-bold">{totalElements}</p>
               </div>
               <div className="flex flex-col gap-2 rounded-2xl p-6 border border-slate-200 dark:border-[#3f3b54] bg-white dark:bg-[#1b1929]">
                 <div className="flex items-center justify-between">
                   <p className="text-slate-500 dark:text-[#a19db9] text-sm font-medium">Currently Rented</p>
                   <span className="material-symbols-outlined text-primary">shopping_cart_checkout</span>
                 </div>
-                <p className="text-slate-900 dark:text-gray-900 dark:text-white text-3xl font-bold">32</p>
+                <p className="text-slate-900 dark:text-white text-3xl font-bold">{gearList?.filter(g => g.status === 'Out on Rent').length || 0}</p>
               </div>
               <div className="flex flex-col gap-2 rounded-2xl p-6 border border-slate-200 dark:border-[#3f3b54] bg-white dark:bg-[#1b1929]">
                 <div className="flex items-center justify-between">
                   <p className="text-slate-500 dark:text-[#a19db9] text-sm font-medium">In Maintenance</p>
                   <span className="material-symbols-outlined text-red-500">build</span>
                 </div>
-                <p className="text-slate-900 dark:text-gray-900 dark:text-white text-3xl font-bold">5</p>
+                <p className="text-slate-900 dark:text-white text-3xl font-bold">{gearList?.filter(g => g.status === 'Maintenance' || g.status === 'Under Maintenance' || g.status === 'Needs Repair').length || 0}</p>
               </div>
             </div>
           </div>
           <div className="px-8 py-4 flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-600 dark:text-slate-400 group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-600 dark:text-slate-400 group-focus-within:text-primary transition-colors">
                   <span className="material-symbols-outlined">search</span>
                 </div>
-                <input className="block w-full pl-12 pr-4 h-12 bg-white dark:bg-[#2b2839] border-none rounded-xl text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#a19db9] focus:ring-2 focus:ring-primary transition-all" placeholder="Search by equipment name, SKU, or serial number..." type="text"/>
+                <input 
+                  className="block w-full pl-12 pr-4 h-12 bg-white dark:bg-[#2b2839] border-none rounded-xl text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#a19db9] focus:ring-2 focus:ring-primary transition-all" 
+                  placeholder="Search by equipment name, SKU, or serial number..." 
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    loadGear(0, e.target.value, selectedCategory, selectedStatus);
+                  }}
+                />
               </div>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0">
-              <button className="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#2b2839] px-5 border border-slate-200 dark:border-transparent text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#353147]">
-                <span className="text-sm font-semibold">Category</span>
-                <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
-              </button>
-              <button className="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#2b2839] px-5 border border-slate-200 dark:border-transparent text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#353147]">
-                <span className="text-sm font-semibold">Status</span>
-                <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
-              </button>
+              <div className="relative">
+                <button 
+                  ref={categoryButtonRef}
+                  className="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#2b2839] px-5 border border-slate-200 dark:border-transparent text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#353147]"
+                  onClick={() => {
+                    if (categoryButtonRef.current) {
+                      const rect = categoryButtonRef.current.getBoundingClientRect();
+                      setDropdownPosition({
+                        top: rect.bottom + window.scrollY + 4,
+                        left: rect.left + window.scrollX
+                      });
+                    }
+                    setShowCategoryDropdown(!showCategoryDropdown);
+                    setShowStatusDropdown(false);
+                  }}
+                >
+                  <span className="text-sm font-semibold">{selectedCategory || 'All Categories'}</span>
+                  <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+                </button>
+              </div>
+              <div className="relative">
+                <button 
+                  ref={statusButtonRef}
+                  className="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#2b2839] px-5 border border-slate-200 dark:border-transparent text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#353147]"
+                  onClick={() => {
+                    if (statusButtonRef.current) {
+                      const rect = statusButtonRef.current.getBoundingClientRect();
+                      setDropdownPosition({
+                        top: rect.bottom + window.scrollY + 4,
+                        left: rect.left + window.scrollX
+                      });
+                    }
+                    setShowStatusDropdown(!showStatusDropdown);
+                    setShowCategoryDropdown(false);
+                  }}
+                >
+                  <span className="text-sm font-semibold">{selectedStatus || 'All Statuses'}</span>
+                  <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+                </button>
+              </div>
               <button className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#2b2839] border border-slate-200 dark:border-transparent text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-[#353147]">
                 <span className="material-symbols-outlined">tune</span>
               </button>
             </div>
           </div>
-          <div className="px-8 py-4 flex-1">
-            <div className="bg-white dark:bg-[#1b1929] border border-slate-200 dark:border-[#3f3b54] rounded-2xl overflow-hidden">
+          <div className="px-8 py-4 flex-1 relative">
+            <div className="bg-white dark:bg-[#1b1929] border border-slate-200 dark:border-[#3f3b54] rounded-2xl overflow-visible">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-[#3f3b54] text-slate-500 dark:text-[#a19db9] text-xs uppercase tracking-wider bg-slate-50/50 dark:bg-[#232036]">
@@ -404,133 +840,744 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-[#3f3b54]">
-                  <tr className="hover:bg-slate-50 dark:hover:bg-[#232036] transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-primary">photo_camera</span>
+                  {(gearList?.length === 0 || !gearList) ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                          <span className="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600">inventory</span>
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No gear items yet</h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-4">Start building your inventory by adding your first gear item.</p>
+                            <button 
+                              onClick={() => setShowAddGearModal(true)}
+                              className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-all"
+                            >
+                              Add First Item
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">Sony Alpha A7 IV</p>
-                          <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: CAM-SY-A74-001</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">Cameras</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">8 / 12</td>
-                    <td className="px-6 py-4 text-sm font-bold">$120<span className="text-slate-500 font-normal">/day</span></td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-sm font-medium text-emerald-500">In Stock</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 dark:hover:bg-[#232036] transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-primary">camera_enhance</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">Canon RF 50mm f/1.2L USM</p>
-                          <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: LNS-CN-50F12-04</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">Lenses</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">0 / 4</td>
-                    <td className="px-6 py-4 text-sm font-bold">$45<span className="text-slate-500 font-normal">/day</span></td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="size-2 rounded-full bg-orange-500"></div>
-                        <span className="text-sm font-medium text-orange-500">Out on Rent</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 dark:hover:bg-[#232036] transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-primary">lightbulb</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">Aputure Light Storm 600d Pro</p>
-                          <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: LGT-AP-600D-12</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">Lighting</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">1 / 2</td>
-                    <td className="px-6 py-4 text-sm font-bold">$95<span className="text-slate-500 font-normal">/day</span></td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="size-2 rounded-full bg-red-500"></div>
-                        <span className="text-sm font-medium text-red-500">Maintenance</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 dark:hover:bg-[#232036] transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-primary">videocam</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-bold text-slate-900 dark:text-gray-900 dark:text-white">DJI RS 3 Gimbal Stabilizer</p>
-                          <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: GIM-DJ-RS3-08</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">Accessories</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">5 / 5</td>
-                    <td className="px-6 py-4 text-sm font-bold">$60<span className="text-slate-500 font-normal">/day</span></td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="size-2 rounded-full bg-emerald-500"></div>
-                        <span className="text-sm font-medium text-emerald-500">In Stock</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-gray-600 dark:text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                  ) : (
+                    (gearList || []).map((gear) => (
+                      <tr key={gear.id} className="hover:bg-slate-50 dark:hover:bg-[#232036] transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="size-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+                              {gear.images && gear.images.length > 0 ? (
+                                <img src={`http://localhost:5555${gear.images[0]}`} alt={gear.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="material-symbols-outlined text-primary">photo_camera</span>
+                              )}
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">{gear.name}</p>
+                              <p className="text-xs text-slate-500 dark:text-[#a19db9]">SKU: {gear.sku}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">{gear.category}</span>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">{gear.stock} / {gear.totalStock}</td>
+                        <td className="px-6 py-4 text-sm font-bold">${gear.rentalPrice}<span className="text-slate-500 font-normal">/day</span></td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className={`size-2 rounded-full ${gear.status === 'In Stock' ? 'bg-emerald-500' : gear.status === 'Out on Rent' ? 'bg-orange-500' : 'bg-red-500'}`}></div>
+                            <span className={`text-sm font-medium ${gear.status === 'In Stock' ? 'text-emerald-500' : gear.status === 'Out on Rent' ? 'text-orange-500' : 'text-red-500'}`}>{gear.status}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center gap-2 justify-end">
+                            <button 
+                              onClick={() => handleEditGear(gear)}
+                              className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                              title="Edit"
+                            >
+                              <span className="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button 
+                              onClick={() => handleToggleAvailability(gear)}
+                              className={`p-1 rounded ${
+                                gear.status === 'In Stock' 
+                                  ? 'text-orange-600 hover:text-orange-800' 
+                                  : 'text-green-600 hover:text-green-800'
+                              }`}
+                              title={gear.status === 'In Stock' ? 'Make Unavailable' : 'Make Available'}
+                            >
+                              <span className="material-symbols-outlined text-lg">
+                                {gear.status === 'In Stock' ? 'visibility_off' : 'visibility'}
+                              </span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-              <div className="p-6 border-t border-slate-200 dark:border-[#3f3b54] flex items-center justify-between">
-                <p className="text-xs text-slate-500 dark:text-[#a19db9]">Showing <span className="font-bold text-slate-900 dark:text-white">1 - 4</span> of <span className="font-bold text-slate-900 dark:text-gray-900 dark:text-white">124</span> results</p>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#3f3b54] text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#2b2839] transition-colors">Previous</button>
-                  <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#3f3b54] text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#2b2839] transition-colors">Next</button>
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-6 py-4 flex items-center justify-between border-t border-slate-200 dark:border-[#3f3b54] bg-slate-50/50 dark:bg-[#232036]">
+                <p className="text-sm text-slate-500 dark:text-[#a19db9]">Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} items</p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => {
+                      if (currentPage > 0) {
+                        loadGear(currentPage - 1, searchTerm, selectedCategory, selectedStatus);
+                      }
+                    }}
+                    disabled={currentPage === 0}
+                    className="p-2 rounded-lg border border-slate-200 dark:border-[#3f3b54] disabled:opacity-50 hover:bg-slate-100 dark:hover:bg-[#353147]"
+                  >
+                    <span className="material-symbols-outlined">chevron_left</span>
+                  </button>
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = Math.max(0, Math.min(totalPages - 5, currentPage - 2)) + i;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => loadGear(pageNum, searchTerm, selectedCategory, selectedStatus)}
+                        className={`size-9 rounded-lg text-sm font-bold ${
+                          pageNum === currentPage 
+                            ? 'bg-primary text-white' 
+                            : 'border border-slate-200 dark:border-[#3f3b54] hover:bg-slate-100 dark:hover:bg-[#353147]'
+                        }`}
+                      >
+                        {pageNum + 1}
+                      </button>
+                    );
+                  })}
+                  
+                  <button 
+                    onClick={() => {
+                      if (currentPage < totalPages - 1) {
+                        loadGear(currentPage + 1, searchTerm, selectedCategory, selectedStatus);
+                      }
+                    }}
+                    disabled={currentPage >= totalPages - 1}
+                    className="p-2 rounded-lg border border-slate-200 dark:border-[#3f3b54] disabled:opacity-50 hover:bg-slate-100 dark:hover:bg-[#353147]"
+                  >
+                    <span className="material-symbols-outlined">chevron_right</span>
+                  </button>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Add Gear Modal */}
+          {showAddGearModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-[#1b1929] rounded-2xl p-8 w-full max-w-md mx-4">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold dark:text-white">Add New Gear</h3>
+                  <button 
+                    onClick={() => setShowAddGearModal(false)}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+                <form onSubmit={handleAddGear} className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                      <h4 className="font-semibold mb-3 text-sm dark:text-white">Product SKU</h4>
+                      <div>
+                        <label className="block text-xs font-semibold mb-2 dark:text-white">SKU (Auto-generated)</label>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            value={newGear.parentSku}
+                            readOnly
+                            className="flex-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-600 border text-sm font-mono text-slate-500 dark:text-slate-400"
+                            placeholder="Auto-generated when category & brand selected"
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if (newGear.category && newGear.brand) {
+                                const parentSku = generateParentSKU(newGear.category, newGear.brand);
+                                const upc = Math.floor(Math.random() * 900000000000) + 100000000000;
+                                const ean = Math.floor(Math.random() * 9000000000000) + 1000000000000;
+                                setNewGear({...newGear, parentSku, upc: upc.toString(), ean: ean.toString()});
+                              }
+                            }}
+                            className="px-3 py-2 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600"
+                            title="Generate SKU"
+                          >
+                            <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">UPC Barcode</label>
+                          <input 
+                            type="text" 
+                            value={newGear.upc}
+                            readOnly
+                            className="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-600 border text-sm font-mono text-slate-500 dark:text-slate-400"
+                            placeholder="Auto-generated"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">EAN Code</label>
+                          <input 
+                            type="text" 
+                            value={newGear.ean}
+                            readOnly
+                            className="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-600 border text-sm font-mono text-slate-500 dark:text-slate-400"
+                            placeholder="Auto-generated"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="material-symbols-outlined text-blue-600 text-sm">info</span>
+                          <span className="text-xs font-semibold text-blue-800 dark:text-blue-300">SKU Format</span>
+                        </div>
+                        <p className="text-xs text-blue-700 dark:text-blue-400">
+                          Format: {getCategoryCode(newGear.category || 'Category')}{getBrandCode(newGear.brand || 'Brand')}XXXX
+                          {newGear.parentSku && validateSKU(newGear.parentSku) ? 
+                            <span className="text-green-600 ml-2">✓ Valid</span> : 
+                            newGear.parentSku ? <span className="text-red-600 ml-2">✗ Invalid</span> : null
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                      <h4 className="font-semibold mb-3 text-sm dark:text-white">Product Information</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Category</label>
+                          <select 
+                            value={newGear.category}
+                            onChange={(e) => {
+                              const category = e.target.value;
+                              if (category && newGear.brand) {
+                                const parentSku = generateParentSKU(category, newGear.brand);
+                                const upc = Math.floor(Math.random() * 900000000000) + 100000000000;
+                                const ean = Math.floor(Math.random() * 9000000000000) + 1000000000000;
+                                setNewGear({...newGear, category, parentSku, upc: upc.toString(), ean: ean.toString()});
+                              } else {
+                                setNewGear({...newGear, category});
+                              }
+                            }}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm text-gray-900 dark:text-white"
+                            required
+                          >
+                            <option value="">Select Category</option>
+                            {categories.map((category, index) => (
+                              <option key={index} value={category.name || category}>{category.name || category}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Brand</label>
+                          <select 
+                            value={newGear.brand}
+                            onChange={(e) => {
+                              const brand = e.target.value;
+                              if (newGear.category && brand) {
+                                const parentSku = generateParentSKU(newGear.category, brand);
+                                const upc = Math.floor(Math.random() * 900000000000) + 100000000000;
+                                const ean = Math.floor(Math.random() * 9000000000000) + 1000000000000;
+                                setNewGear({...newGear, brand, parentSku, upc: upc.toString(), ean: ean.toString()});
+                              } else {
+                                setNewGear({...newGear, brand});
+                              }
+                            }}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm text-gray-900 dark:text-white"
+                            required
+                          >
+                            <option value="">Select Brand</option>
+                            {brands.filter(b => !newGear.category || b.categoryName === newGear.category).map((brand, index) => (
+                              <option key={index} value={brand.name}>{brand.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <label className="block text-xs font-semibold mb-2 dark:text-white">Model</label>
+                        <input 
+                          type="text" 
+                          value={newGear.model}
+                          onChange={(e) => {
+                            const model = e.target.value;
+                            const name = newGear.brand && model ? `${newGear.brand} ${model}` : '';
+                            const variantSku = newGear.parentSku && model ? `${newGear.parentSku}-${model.replace(/\s+/g, '').substring(0, 4).toUpperCase()}` : '';
+                            setNewGear({...newGear, model, name, variantSku});
+                          }}
+                          className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm text-gray-900 dark:text-white"
+                          placeholder="Alpha A7 IV"
+                          required
+                        />
+                      </div>
+                      <div className="mt-3">
+                        <label className="block text-xs font-semibold mb-2 dark:text-white">Product Name (Auto-generated)</label>
+                        <input 
+                          type="text" 
+                          value={newGear.name}
+                          onChange={(e) => setNewGear({...newGear, name: e.target.value})}
+                          className="w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-600 border text-sm text-gray-900 dark:text-white"
+                          placeholder="Auto-filled from brand + model"
+                        />
+                      </div>
+                      <div className="mt-3">
+                        <label className="block text-xs font-semibold mb-2 dark:text-white">Product Image</label>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => setNewGear({...newGear, image: Array.from(e.target.files)})}
+                          className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                      <h4 className="font-semibold mb-3 text-sm dark:text-white">Inventory Details</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Warehouse Location</label>
+                          <input 
+                            type="text" 
+                            value={newGear.location}
+                            onChange={(e) => setNewGear({...newGear, location: e.target.value})}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm"
+                            placeholder="A1-B2-C3"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Supplier</label>
+                          <input 
+                            type="text" 
+                            value={newGear.supplier}
+                            onChange={(e) => setNewGear({...newGear, supplier: e.target.value})}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm"
+                            placeholder="Supplier name"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 mt-3">
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Cost Price</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={newGear.costPrice}
+                            onChange={(e) => setNewGear({...newGear, costPrice: e.target.value})}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm"
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Available</label>
+                          <input 
+                            type="number" 
+                            value={newGear.stock}
+                            onChange={(e) => setNewGear({...newGear, stock: e.target.value})}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2 dark:text-white">Rental Price/Day</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={newGear.rentalPrice}
+                            onChange={(e) => setNewGear({...newGear, rentalPrice: e.target.value})}
+                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      type="button"
+                      onClick={() => setShowAddGearModal(false)}
+                      className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-semibold hover:opacity-90"
+                    >
+                      Add Gear
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Gear Modal */}
+          {showEditGearModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-[#1b1929] rounded-2xl p-8 w-full max-w-md mx-4">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold dark:text-white">Edit Gear</h3>
+                  <button 
+                    onClick={() => {
+                      setShowEditGearModal(false);
+                      setEditingGear(null);
+                    }}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+                <form onSubmit={handleUpdateGear} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 dark:text-white">Brand</label>
+                      <input 
+                        type="text" 
+                        value={newGear.brand}
+                        onChange={(e) => setNewGear({...newGear, brand: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 dark:text-white">Model</label>
+                      <input 
+                        type="text" 
+                        value={newGear.model}
+                        onChange={(e) => setNewGear({...newGear, model: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 dark:text-white">Item Name</label>
+                    <input 
+                      type="text" 
+                      value={newGear.name}
+                      onChange={(e) => setNewGear({...newGear, name: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 dark:text-white">SKU</label>
+                    <input 
+                      type="text" 
+                      value={newGear.sku}
+                      disabled
+                      className="w-full px-4 py-3 rounded-xl bg-slate-200 dark:bg-slate-700 border-none text-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 dark:text-white">Category</label>
+                    <select 
+                      value={newGear.category}
+                      onChange={(e) => setNewGear({...newGear, category: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                      required
+                    >
+                      {categories.map((category, index) => (
+                        <option key={index} value={category.name || category}>{category.name || category}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 dark:text-white">Available</label>
+                      <input 
+                        type="number" 
+                        value={newGear.stock}
+                        onChange={(e) => setNewGear({...newGear, stock: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 dark:text-white">Total</label>
+                      <input 
+                        type="number" 
+                        value={newGear.totalStock}
+                        onChange={(e) => setNewGear({...newGear, totalStock: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 dark:text-white">Price/Day</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={newGear.rentalPrice}
+                        onChange={(e) => setNewGear({...newGear, rentalPrice: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 dark:text-white">Status</label>
+                    <select 
+                      value={newGear.status}
+                      onChange={(e) => setNewGear({...newGear, status: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                      required
+                    >
+                      {statuses.map((status, index) => (
+                        <option key={index} value={status.name || status}>{status.name || status}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 dark:text-white">Condition</label>
+                    <select 
+                      value={newGear.condition}
+                      onChange={(e) => setNewGear({...newGear, condition: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary"
+                      required
+                    >
+                      <option value="Excellent">Excellent</option>
+                      <option value="Good">Good</option>
+                      <option value="Fair">Fair</option>
+                      <option value="Needs Repair">Needs Repair</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setShowEditGearModal(false);
+                        setEditingGear(null);
+                      }}
+                      className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-semibold hover:opacity-90"
+                    >
+                      Update Gear
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (location.pathname === '/admin/settings') {
+      return (
+        <div className="p-8 flex flex-col gap-6">
+          <div className="flex flex-col gap-1 mb-6">
+            <h2 className="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">System Settings</h2>
+            <p className="text-slate-500 dark:text-[#a19db9] text-base">Manage categories and statuses for your inventory system</p>
+            <div className="mt-4">
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('http://localhost:5555/api/settings/initialize', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (response.ok) {
+                      toast.success('Default data initialized successfully!');
+                      loadCategories();
+                      loadStatuses();
+                    } else {
+                      toast.error('Failed to initialize data');
+                    }
+                  } catch (error) {
+                    toast.error('Failed to initialize data');
+                  }
+                }}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">refresh</span>
+                Initialize Default Data
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="bg-white dark:bg-[#1b1929] border border-slate-200 dark:border-[#3f3b54] rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold dark:text-white">Gear Categories</h3>
+                <button 
+                  onClick={() => setShowAddCategoryModal(true)}
+                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  Add Category
+                </button>
+              </div>
+              <div className="space-y-3">
+                {categories.map((category, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
+                    <span className="font-medium dark:text-white">{category}</span>
+                    <button 
+                      onClick={() => deleteCategory(index)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-[#1b1929] border border-slate-200 dark:border-[#3f3b54] rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold dark:text-white">Brands</h3>
+                <button 
+                  onClick={() => setShowAddBrandModal(true)}
+                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  Add Brand
+                </button>
+              </div>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {brands.map((brand, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
+                    <div>
+                      <span className="font-medium dark:text-white block">{brand.name}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{brand.categoryName}</span>
+                    </div>
+                    <button 
+                      onClick={() => deleteBrand(brand.id)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-[#1b1929] border border-slate-200 dark:border-[#3f3b54] rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold dark:text-white">Gear Statuses</h3>
+                <button 
+                  onClick={() => setShowAddStatusModal(true)}
+                  className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  Add Status
+                </button>
+              </div>
+              <div className="space-y-3">
+                {statuses.map((status, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`size-3 rounded-full ${
+                        status === 'In Stock' ? 'bg-emerald-500' :
+                        status === 'Out on Rent' ? 'bg-orange-500' :
+                        status === 'Maintenance' ? 'bg-red-500' : 'bg-slate-500'
+                      }`}></div>
+                      <span className="font-medium dark:text-white">{status}</span>
+                    </div>
+                    <button 
+                      onClick={() => deleteStatus(index)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
+
+          {showAddCategoryModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-[#1b1929] rounded-2xl p-6 w-full max-w-md mx-4">
+                <h3 className="text-xl font-bold mb-4 dark:text-white">Add New Category</h3>
+                <input 
+                  type="text" 
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Enter category name"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary mb-4"
+                />
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => {
+                      setShowAddCategoryModal(false);
+                      setNewCategory('');
+                    }}
+                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (newCategory.trim()) {
+                        const success = await addCategory(newCategory.trim());
+                        if (success) {
+                          setNewCategory('');
+                          setShowAddCategoryModal(false);
+                        }
+                      }
+                    }}
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-semibold hover:opacity-90"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showAddStatusModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-[#1b1929] rounded-2xl p-6 w-full max-w-md mx-4">
+                <h3 className="text-xl font-bold mb-4 dark:text-white">Add New Status</h3>
+                <input 
+                  type="text" 
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  placeholder="Enter status name"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary mb-4"
+                />
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => {
+                      setShowAddStatusModal(false);
+                      setNewStatus('');
+                    }}
+                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (newStatus.trim()) {
+                        const success = await addStatus(newStatus.trim());
+                        if (success) {
+                          setNewStatus('');
+                          setShowAddStatusModal(false);
+                        }
+                      }
+                    }}
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-semibold hover:opacity-90"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -693,8 +1740,8 @@ const AdminDashboard = () => {
           </div>
           <div className="bg-primary rounded-xl p-8 relative overflow-hidden group">
             <div className="relative z-10">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Upgrade Equipment</h3>
-              <p className="text-gray-900 dark:text-white/80 text-sm max-w-[240px] mb-6">Explore the new rental marketplace and refresh your studio gear with member discounts.</p>
+              <h3 className="text-xl font-bold text-white mb-2">Upgrade Equipment</h3>
+              <p className="text-white/90 text-sm max-w-[240px] mb-6">Explore the new rental marketplace and refresh your studio gear with member discounts.</p>
               <button className="bg-white text-primary px-6 py-2.5 rounded-xl font-bold text-sm shadow-xl hover:bg-slate-50 transition-colors">
                 Browse Marketplace
               </button>
@@ -708,12 +1755,12 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-gray-900 dark:text-white min-h-screen">
+    <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
       <div className="flex h-screen overflow-hidden">
         <aside className="w-64 bg-background-light dark:bg-surface-dark border-r border-slate-200 dark:border-border-dark flex flex-col justify-between p-6">
           <div className="flex flex-col gap-8">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-primary flex items-center justify-center text-gray-900 dark:text-white">
+              <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white">
                 <span className="material-symbols-outlined">auto_awesome</span>
               </div>
               <div className="flex flex-col">
@@ -740,9 +1787,15 @@ const AdminDashboard = () => {
                 <span className="material-symbols-outlined">inventory_2</span>
                 <span className="text-sm font-medium">Gear Inventory</span>
               </Link>
+              <Link className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                location.pathname === '/admin/settings' ? 'sidebar-active text-white bg-border-dark border-l-4 border-primary' : 'text-slate-600 dark:text-muted-text hover:bg-slate-100 dark:hover:bg-border-dark'
+              }`} to="/admin/settings">
+                <span className="material-symbols-outlined">settings</span>
+                <span className="text-sm font-medium">Settings</span>
+              </Link>
             </nav>
           </div>
-          <button className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all">
+          <button className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all">
             <span className="material-symbols-outlined text-sm">add</span>
             <span>New Booking</span>
           </button>
@@ -752,7 +1805,7 @@ const AdminDashboard = () => {
           <header className="flex items-center justify-between px-8 py-4 border-b border-slate-200 dark:border-border-dark sticky top-0 bg-background-light dark:bg-background-dark/80 backdrop-blur-md z-10">
             <div className="flex items-center gap-6 flex-1">
               <h2 className="text-xl font-bold tracking-tight">
-                {location.pathname === '/admin/bookings' ? 'Manage Bookings' : location.pathname === '/admin/inventory' ? 'Manage Gear Inventory' : 'Overview'}
+                {location.pathname === '/admin/bookings' ? 'Manage Bookings' : location.pathname === '/admin/inventory' ? 'Manage Gear Inventory' : location.pathname === '/admin/settings' ? 'System Settings' : 'Overview'}
               </h2>
               {(location.pathname === '/admin/bookings' || location.pathname === '/admin/inventory') && (
                 <>
@@ -766,63 +1819,211 @@ const AdminDashboard = () => {
               <div className="relative w-full max-w-md">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-text text-xl">search</span>
                 <input 
-                  className="w-full bg-slate-100 dark:bg-border-dark border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-gray-900 dark:text-white" 
+                  className="w-full bg-slate-100 dark:bg-border-dark border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary transition-all text-slate-900 dark:text-white" 
                   placeholder={location.pathname === '/admin/bookings' ? 'Search bookings...' : location.pathname === '/admin/inventory' ? 'Search inventory...' : 'Search bookings, gear, or clients...'} 
                   type="text"
                 />
               </div>
             </div>
             <div className="flex items-center gap-4">
-              {(location.pathname === '/admin/bookings' || location.pathname === '/admin/inventory') ? (
-                <>
-                  <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">
-                    <span className="material-symbols-outlined">notifications</span>
-                  </button>
-                  <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">
-                    <span className="material-symbols-outlined">help_outline</span>
-                  </button>
-                  <button className="bg-primary text-gray-900 dark:text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
-                    <span className="material-symbols-outlined text-lg">add</span>
-                    {location.pathname === '/admin/bookings' ? 'New Booking' : 'Add Item'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button 
-                    onClick={toggleTheme}
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    <span className="material-symbols-outlined">
-                      {isDark ? 'light_mode' : 'dark_mode'}
-                    </span>
-                  </button>
-                  <button className="p-2 rounded-xl bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    <span className="material-symbols-outlined">notifications</span>
-                  </button>
-                  <div className="h-8 w-[1px] bg-slate-200 dark:bg-border-dark mx-2"></div>
-                  <div className="flex items-center gap-3 cursor-pointer group">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-sm font-semibold leading-none">Alex Rivera</p>
-                      <p className="text-xs text-muted-text mt-1">Studio Manager</p>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        localStorage.setItem('userType', 'customer');
-                        setUserType('customer');
-                        window.location.reload();
-                      }}
-                      className="size-10 rounded-full bg-center bg-cover border-2 border-transparent hover:border-primary transition-all"
-                      style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_qACXtC2SB2Q2v6BRB3ZOce0Fai7zWsVqWccYimOrAXnJDIsDybwEoaLTAUfUa9QL95-gqViXMVNt2iPyVcpNoO05FgtvduwOOxMSMp3MXmNue0m_XKLb3KsiY_XhIW1FJqa7jILHelJjocNZLTrvFJDWEongS2_guOHmHOT-Lv4RBQvQThR7MsHdLtp5Av9ewpoRt_ge3QXGVcCQFtwiP2B_EMdXudydg1CiQCa3xHtv9xvO6s7QTtf1TLY-poq2WO6_OqRzY6iI')"}}
-                    >
-                    </button>
-                  </div>
-                </>
-              )}
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                <span className="material-symbols-outlined">
+                  {isDark ? 'light_mode' : 'dark_mode'}
+                </span>
+              </button>
+              <button className="p-2 rounded-xl bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <span className="material-symbols-outlined">notifications</span>
+              </button>
+              <div className="h-8 w-[1px] bg-slate-200 dark:bg-border-dark mx-2"></div>
+              <div className="flex items-center gap-3 cursor-pointer group">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-semibold leading-none">{user?.name || user?.email || 'Admin User'}</p>
+                  <p className="text-xs text-muted-text mt-1">{user?.role || 'Administrator'}</p>
+                </div>
+                <button 
+                  onClick={() => authService.logout()}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
             </div>
           </header>
           {renderContent()}
         </main>
       </div>
+      
+      {/* Portal dropdowns */}
+      {showCategoryDropdown && createPortal(
+        <div 
+          className={`fixed w-48 border rounded-xl shadow-lg z-[9999] ${
+            isDark 
+              ? 'bg-[#2b2839] border-slate-600 text-white' 
+              : 'bg-white border-slate-200 text-slate-700'
+          }`}
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`
+          }}
+        >
+          <button 
+            className={`w-full px-4 py-2 text-left text-sm first:rounded-t-xl ${
+              isDark 
+                ? 'hover:bg-slate-700' 
+                : 'hover:bg-slate-100'
+            }`}
+            onClick={() => {
+              setSelectedCategory('');
+              loadGear(0, searchTerm, '', selectedStatus);
+              setShowCategoryDropdown(false);
+            }}
+          >
+            All Categories
+          </button>
+          {categories.map((category, index) => (
+            <button 
+              key={index}
+              className={`w-full px-4 py-2 text-left text-sm last:rounded-b-xl ${
+                isDark 
+                  ? 'hover:bg-slate-700' 
+                  : 'hover:bg-slate-100'
+              }`}
+              onClick={() => {
+                setSelectedCategory(category);
+                loadGear(0, searchTerm, category, selectedStatus);
+                setShowCategoryDropdown(false);
+              }}
+            >
+              {category}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
+      
+      {showStatusDropdown && createPortal(
+        <div 
+          className={`fixed w-48 border rounded-xl shadow-lg z-[9999] ${
+            isDark 
+              ? 'bg-[#2b2839] border-slate-600 text-white' 
+              : 'bg-white border-slate-200 text-slate-700'
+          }`}
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`
+          }}
+        >
+          <button 
+            className={`w-full px-4 py-2 text-left text-sm first:rounded-t-xl ${
+              isDark 
+                ? 'hover:bg-slate-700' 
+                : 'hover:bg-slate-100'
+            }`}
+            onClick={() => {
+              setSelectedStatus('');
+              loadGear(0, searchTerm, selectedCategory, '');
+              setShowStatusDropdown(false);
+            }}
+          >
+            All Statuses
+          </button>
+          {statuses.map((status, index) => (
+            <button 
+              key={index}
+              className={`w-full px-4 py-2 text-left text-sm last:rounded-b-xl ${
+                isDark 
+                  ? 'hover:bg-slate-700' 
+                  : 'hover:bg-slate-100'
+              }`}
+              onClick={() => {
+                setSelectedStatus(status);
+                loadGear(0, searchTerm, selectedCategory, status);
+                setShowStatusDropdown(false);
+              }}
+            >
+              {status}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
+
+      {showAddBrandModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-[#1b1929] rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-xl font-bold mb-4 dark:text-white">Add New Brand</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2 dark:text-white">Category</label>
+                <select 
+                  value={newBrand.categoryId}
+                  onChange={(e) => setNewBrand({...newBrand, categoryId: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category.id || index + 1}>{category.name || category}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2 dark:text-white">Brand Name</label>
+                <input 
+                  type="text" 
+                  value={newBrand.name}
+                  onChange={(e) => setNewBrand({...newBrand, name: e.target.value})}
+                  placeholder="Enter brand name"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[#2b2839] border-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => {
+                  setShowAddBrandModal(false);
+                  setNewBrand({ name: '', categoryId: '' });
+                }}
+                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  if (newBrand.name.trim() && newBrand.categoryId) {
+                    try {
+                      const response = await fetch('http://localhost:5555/api/settings/brands', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: newBrand.name.trim(),
+                          categoryId: newBrand.categoryId
+                        })
+                      });
+                      if (response.ok) {
+                        setNewBrand({ name: '', categoryId: '' });
+                        setShowAddBrandModal(false);
+                        loadBrands();
+                      }
+                    } catch (error) {
+                      console.error('Failed to add brand');
+                    }
+                  }
+                }}
+                className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-semibold hover:opacity-90"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import authService from '../services/authService';
+import toast from 'react-hot-toast';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,10 @@ const Signup = () => {
     password: '',
     confirmPassword: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     setFormData({
@@ -18,9 +24,32 @@ const Signup = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Signup attempt:', formData);
+    setLoading(true);
+    setError('');
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      await authService.register(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
+      toast.success('Account created successfully!');
+      navigate('/');
+    } catch (err) {
+      toast.error(err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,6 +67,11 @@ const Signup = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold mb-2">First Name</label>
@@ -105,7 +139,13 @@ const Signup = () => {
             </div>
 
             <div className="flex items-start">
-              <input type="checkbox" className="rounded border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5 text-primary focus:ring-primary mt-1" required />
+              <input 
+                type="checkbox" 
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="rounded border-gray-300 dark:border-white/10 bg-gray-100 dark:bg-white/5 text-primary focus:ring-primary mt-1" 
+                required 
+              />
               <span className="ml-2 text-sm text-gray-600 dark:text-slate-400">
                 I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>
               </span>
@@ -113,9 +153,10 @@ const Signup = () => {
 
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all"
+              disabled={loading || !agreedToTerms}
+              className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50"
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

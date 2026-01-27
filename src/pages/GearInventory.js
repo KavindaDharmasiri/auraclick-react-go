@@ -1,12 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import gearService from '../services/gearService';
 
 const GearInventory = () => {
-  const inventory = [
-    { id: 1, name: 'Sony Alpha A7 IV', sku: 'CAM-SY-A74-001', category: 'Cameras', stock: '8 / 12', price: '$120/day', status: 'In Stock' },
-    { id: 2, name: 'Canon RF 50mm f/1.2L USM', sku: 'LNS-CN-50F12-04', category: 'Lenses', stock: '0 / 4', price: '$45/day', status: 'Out on Rent' },
-    { id: 3, name: 'Aputure Light Storm 600d Pro', sku: 'LGT-AP-600D-12', category: 'Lighting', stock: '1 / 2', price: '$95/day', status: 'Maintenance' },
-    { id: 4, name: 'DJI RS 3 Gimbal Stabilizer', sku: 'GIM-DJ-RS3-08', category: 'Accessories', stock: '5 / 5', price: '$60/day', status: 'In Stock' }
-  ];
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadInventory();
+  }, []);
+
+  const loadInventory = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5555/api/gear');
+      const data = await response.json();
+      setInventory(data.content || data);
+    } catch (err) {
+      setError('Failed to load inventory');
+      console.error('Error loading inventory:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-slate-400">Loading inventory...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={loadInventory}
+            className="bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -93,19 +136,21 @@ const GearInventory = () => {
                     {item.category}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-medium">{item.stock}</td>
-                <td className="px-6 py-4 font-bold">{item.price}</td>
+                <td className="px-6 py-4 font-medium">{item.stock} / {item.totalStock}</td>
+                <td className="px-6 py-4 font-bold">${item.rentalPrice}/day</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${
                       item.status === 'In Stock' ? 'bg-green-500' :
                       item.status === 'Out on Rent' ? 'bg-orange-500' :
-                      'bg-red-500'
+                      item.status === 'Maintenance' || item.status === 'Maintain' ? 'bg-red-500' :
+                      'bg-gray-500'
                     }`}></div>
                     <span className={`text-sm font-medium ${
                       item.status === 'In Stock' ? 'text-green-400' :
                       item.status === 'Out on Rent' ? 'text-orange-400' :
-                      'text-red-400'
+                      item.status === 'Maintenance' || item.status === 'Maintain' ? 'text-red-400' :
+                      'text-gray-400'
                     }`}>
                       {item.status}
                     </span>

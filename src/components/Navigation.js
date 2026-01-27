@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import authService from '../services/authService';
 
 const Navigation = () => {
   const location = useLocation();
@@ -111,11 +112,20 @@ const Navigation = () => {
                 <span className="absolute -top-1 -right-1 size-5 bg-primary text-[10px] flex items-center justify-center rounded-full text-white font-bold">2</span>
               </button>
             </Link>
-            <Link to="/login">
-              <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-200">
-                Sign In
+            {authService.isAuthenticated() ? (
+              <button 
+                onClick={() => authService.logout()}
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-200"
+              >
+                Logout
               </button>
-            </Link>
+            ) : (
+              <Link to="/login">
+                <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-200">
+                  Sign In
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
