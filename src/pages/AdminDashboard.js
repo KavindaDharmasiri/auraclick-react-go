@@ -335,16 +335,12 @@ const AdminDashboard = () => {
       const response = await fetch('http://localhost:5555/api/settings/categories');
       if (response.ok) {
         const data = await response.json();
-        setCategories(data.map(cat => cat.name));
+        setCategories(data);
       } else {
         console.error('Failed to load categories:', response.status);
-        // Set default categories if API fails
-        setCategories(['Cameras', 'Lenses', 'Lighting', 'Accessories', 'Audio', 'Tripods']);
       }
     } catch (error) {
       console.error('Failed to load categories:', error);
-      // Set default categories if API fails
-      setCategories(['Cameras', 'Lenses', 'Lighting', 'Accessories', 'Audio', 'Tripods']);
     }
   };
 
@@ -1072,7 +1068,7 @@ const AdminDashboard = () => {
                           >
                             <option value="">Select Category</option>
                             {categories.map((category, index) => (
-                              <option key={index} value={category.name || category}>{category.name || category}</option>
+                              <option key={category.id} value={category.name || category}>{category.name || category}</option>
                             ))}
                           </select>
                         </div>
@@ -1286,7 +1282,7 @@ const AdminDashboard = () => {
                       required
                     >
                       {categories.map((category, index) => (
-                        <option key={index} value={category.name || category}>{category.name || category}</option>
+                        <option key={category.id} value={category.name || category}>{category.name || category}</option>
                       ))}
                     </select>
                   </div>
@@ -1423,10 +1419,10 @@ const AdminDashboard = () => {
               </div>
               <div className="space-y-3">
                 {categories.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
-                    <span className="font-medium dark:text-white">{category}</span>
+                  <div key={category.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
+                    <span className="font-medium dark:text-white">{category.name}</span>
                     <button 
-                      onClick={() => deleteCategory(index)}
+                      onClick={() => deleteCategory(category.id)}
                       className="text-red-500 hover:text-red-700 p-1"
                     >
                       <span className="material-symbols-outlined text-sm">delete</span>
@@ -1887,19 +1883,19 @@ const AdminDashboard = () => {
           </button>
           {categories.map((category, index) => (
             <button 
-              key={index}
+              key={category.id}
               className={`w-full px-4 py-2 text-left text-sm last:rounded-b-xl ${
                 isDark 
                   ? 'hover:bg-slate-700' 
                   : 'hover:bg-slate-100'
               }`}
               onClick={() => {
-                setSelectedCategory(category);
-                loadGear(0, searchTerm, category, selectedStatus);
+                setSelectedCategory(category.name);
+                loadGear(0, searchTerm, category.name, selectedStatus);
                 setShowCategoryDropdown(false);
               }}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>,
@@ -1968,7 +1964,7 @@ const AdminDashboard = () => {
                 >
                   <option value="">Select Category</option>
                   {categories.map((category, index) => (
-                    <option key={index} value={category.id || index + 1}>{category.name || category}</option>
+                    <option key={category.id} value={category.id}>{category.name}</option>
                   ))}
                 </select>
               </div>
