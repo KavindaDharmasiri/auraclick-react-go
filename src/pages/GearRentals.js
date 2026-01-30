@@ -23,6 +23,14 @@ const GearRentals = () => {
   const hiddenCategories = categories.slice(4);
 
   useEffect(() => {
+    // Initialize theme
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
     loadData();
   }, []);
 
@@ -34,7 +42,8 @@ const GearRentals = () => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        size: '9'
+        size: '9',
+        status: 'In Stock'
       });
       
       if (category) params.append('category', category);
@@ -98,12 +107,14 @@ const GearRentals = () => {
 
       if (gearRes.ok) {
         const gearData = await gearRes.json();
-        setGearItems(gearData.content || gearData);
+        // Don't set gear items here, let filterGear handle it
       }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
+      // Load filtered gear after data is loaded
+      filterGear('', [], 50, 500, 0);
     }
   };
 
