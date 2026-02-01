@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navigation from '../components/Navigation';
 import { Link } from 'react-router-dom';
+import toast from "react-hot-toast";
 
 const WeddingPlanning = () => {
   const [selectedPackage, setSelectedPackage] = useState('Platinum');
@@ -9,7 +10,7 @@ const WeddingPlanning = () => {
     partner2: '',
     email: '',
     weddingDate: '',
-    guestCount: '50-150 guests',
+    guestCount: '50-150',
     vision: ''
   });
 
@@ -36,6 +37,7 @@ const WeddingPlanning = () => {
 
   const packages = [
     {
+      id: 1,
       name: 'Gold',
       type: 'Essential',
       price: '$4,500',
@@ -47,6 +49,7 @@ const WeddingPlanning = () => {
       ]
     },
     {
+      id: 2,
       name: 'Platinum',
       type: 'Full Service',
       price: '$8,200',
@@ -60,6 +63,7 @@ const WeddingPlanning = () => {
       ]
     },
     {
+      id: 3,
       name: 'Bespoke',
       type: 'Tailored',
       price: 'Contact for Pricing',
@@ -106,9 +110,63 @@ const WeddingPlanning = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const scrollToPackages = () => {
+    document.getElementById('planning-packages').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    
+    // Validate required fields
+    if (!formData.partner1 || !formData.partner2 || !formData.email || !formData.weddingDate || !formData.guestCount || !selectedPackage) {
+      toast.error('Please fill out all required fields.');
+      return;
+    }
+
+    // Get selected package ID
+    const selectedPkg = packages.find(pkg => pkg.name === selectedPackage);
+    if (!selectedPkg) {
+      toast.success('Please select a valid package.');
+      return;
+    }
+
+    const payload = {
+      weddingDate: new Date(formData.weddingDate).toISOString(),
+      email: formData.email,
+      partner1FullName: formData.partner1,
+      partner2FullName: formData.partner2,
+      numberOfGuestsRange: formData.guestCount,
+      vision: formData.vision,
+      packageId: selectedPkg.id
+    };
+
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/weddingPlanning/setBooking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        toast.success('Booking submitted successfully!');
+        // Reset form
+        setFormData({
+          partner1: '',
+          partner2: '',
+          email: '',
+          weddingDate: '',
+          guestCount: '50-150',
+          vision: ''
+        });
+      } else {
+        alert('Failed to submit booking. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+        alert('An error occurred while submitting your booking. Please try again later.');
+    }
   };
 
   return (
@@ -145,7 +203,7 @@ const WeddingPlanning = () => {
                   <span className="material-symbols-outlined">colors_spark</span>
                 </button>
               </Link>
-              <button className="bg-white/3 backdrop-blur-md px-10 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 border border-gray-300 dark:border-white/10 hover:bg-white/10">
+              <button onClick={scrollToPackages} className="bg-white/3 backdrop-blur-md px-10 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 border border-gray-300 dark:border-white/10 hover:bg-white/10">
                 View Packages
               </button>
             </div>
@@ -276,7 +334,7 @@ const WeddingPlanning = () => {
         </section>
 
         {/* Wedding Planning Packages */}
-        <section>
+        <section id="planning-packages">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl font-extrabold tracking-tight">Planning Packages</h2>
             <p className="text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
@@ -319,12 +377,14 @@ const WeddingPlanning = () => {
                 <button 
                   onClick={() => setSelectedPackage(pkg.name)}
                   className={`w-full mt-10 py-4 rounded-xl font-bold transition-all ${
-                    pkg.popular 
-                      ? 'bg-primary text-gray-900 dark:text-white hover:bg-primary/90 shadow-xl shadow-primary/20' 
-                      : 'border border-gray-300 dark:border-white/10 hover:bg-gray-100 dark:bg-white/5'
+                    selectedPackage === pkg.name
+                      ? 'bg-primary text-gray-900 dark:text-white shadow-xl shadow-primary/20'
+                      : pkg.popular 
+                        ? 'bg-primary text-gray-900 dark:text-white hover:bg-primary/90 shadow-xl shadow-primary/20' 
+                        : 'border border-gray-300 dark:border-white/10 hover:bg-gray-100 dark:bg-white/5'
                   }`}
                 >
-                  {pkg.name === 'Bespoke' ? 'Inquire Now' : `Select ${pkg.name}`}
+                  {selectedPackage === pkg.name ? '✓ Selected' : pkg.name === 'Bespoke' ? 'Inquire Now' : `Select ${pkg.name}`}
                 </button>
               </div>
             ))}
@@ -422,9 +482,15 @@ const WeddingPlanning = () => {
             </div>
             <div className="p-12 bg-background-dark/50">
               <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Selected Package *</label>
+                  <div className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 text-gray-900 dark:text-white font-semibold">
+                    {selectedPackage || 'Please select a package above'}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Partner 1</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Partner 1 *</label>
                     <input 
                       className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                       placeholder="Full Name" 
@@ -432,10 +498,11 @@ const WeddingPlanning = () => {
                       name="partner1"
                       value={formData.partner1}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Partner 2</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Partner 2 *</label>
                     <input 
                       className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                       placeholder="Full Name" 
@@ -443,11 +510,12 @@ const WeddingPlanning = () => {
                       name="partner2"
                       value={formData.partner2}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address *</label>
                   <input 
                     className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                     placeholder="email@example.com" 
@@ -455,31 +523,34 @@ const WeddingPlanning = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    required
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Wedding Date</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Wedding Date *</label>
                     <input 
                       className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white" 
                       type="date"
                       name="weddingDate"
                       value={formData.weddingDate}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Guest Count</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Guest Count *</label>
                     <select 
                       className="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                       name="guestCount"
                       value={formData.guestCount}
                       onChange={handleInputChange}
+                      required
                     >
-                      <option>0-50 guests</option>
-                      <option>50-150 guests</option>
-                      <option>150-300 guests</option>
-                      <option>300+ guests</option>
+                      <option value="0-50">0-50</option>
+                      <option value="50-150">50-150</option>
+                      <option value="150-300">150-300</option>
+                      <option value="300+">300+</option>
                     </select>
                   </div>
                 </div>
@@ -498,7 +569,7 @@ const WeddingPlanning = () => {
                   type="submit"
                   className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-primary/20"
                 >
-                  Submit Inquiry
+                  Submit Booking Request
                 </button>
               </form>
             </div>
