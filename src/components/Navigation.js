@@ -6,6 +6,38 @@ import { useTheme } from '../contexts/ThemeContext';
 const Navigation = () => {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    loadCartCount();
+    
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      loadCartCount();
+    };
+    
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, []);
+
+  const loadCartCount = async () => {
+    if (authService.isAuthenticated()) {
+      try {
+        const response = await authService.apiCall('http://localhost:5555/api/cart');
+        if (response.ok) {
+          const cartItems = await response.json();
+          setCartCount(cartItems.length); // Count of unique items, not total quantity
+        }
+      } catch (error) {
+        console.error('Failed to load cart count:', error);
+      }
+    } else {
+      setCartCount(0);
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
@@ -75,6 +107,18 @@ const Navigation = () => {
             >
               Contact
             </Link>
+            {authService.isAuthenticated() && (
+              <Link 
+                to="/orders" 
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === '/orders' 
+                    ? 'text-primary' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-primary'
+                }`}
+              >
+                Orders
+              </Link>
+            )}
           </div>
 
           {/* Sign In Button */}
@@ -90,7 +134,11 @@ const Navigation = () => {
             <Link to="/cart" className="relative">
               <button className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined text-slate-600 dark:text-slate-300">shopping_cart</span>
-                <span className="absolute -top-1 -right-1 size-5 bg-primary text-[10px] flex items-center justify-center rounded-full text-white font-bold">2</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 size-5 bg-primary text-[10px] flex items-center justify-center rounded-full text-white font-bold">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
               </button>
             </Link>
             {authService.isAuthenticated() ? (

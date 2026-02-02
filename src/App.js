@@ -17,6 +17,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Cart from './pages/Cart';
+import PastOrders from './pages/PastOrders';
 import AuthGuard from './components/AuthGuard';
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
               <Route path="/weddings" element={<AuthGuard><WeddingPlanning /></AuthGuard>} />
               <Route path="/ai-booking" element={<AuthGuard><AIBooking /></AuthGuard>} />
               <Route path="/cart" element={<AuthGuard><Cart /></AuthGuard>} />
+              <Route path="/orders" element={<AuthGuard><PastOrders /></AuthGuard>} />
               <Route path="/admin" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
               <Route path="/admin/*" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
             </Routes>
@@ -85,6 +87,7 @@ function App() {
             <Route path="/" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
             <Route path="/admin" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
             <Route path="/admin/bookings" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+            <Route path="/admin/orders" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
             <Route path="/admin/inventory" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
             <Route path="/admin/users" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
             <Route path="/admin/analytics" element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
