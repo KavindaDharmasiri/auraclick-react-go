@@ -1113,7 +1113,7 @@ const AdminDashboard = () => {
                     switch(status) {
                       case 'Paid': return { icon: 'check_circle', color: 'text-green-500' };
                       case 'Partial': return { icon: 'schedule', color: 'text-yellow-500' };
-                      case 'Completed': return { icon: 'check_circle', color: 'text-green-500' };
+                      case 'Unpaid': return { icon: 'check_circle', color: 'text-green-500' };
                       default: return { icon: 'cancel', color: 'text-red-500' };
                     }
                   };
@@ -1122,7 +1122,7 @@ const AdminDashboard = () => {
                     switch(displayStatus) {
                       case 'Paid': return 'PAID';
                       case 'Partial': return 'PARTIALLY_PAID';
-                      case 'Completed': return 'PAID';
+                      case 'Unpaid': return 'UNPAID';
                       default: return 'UNPAID';
                     }
                   };
