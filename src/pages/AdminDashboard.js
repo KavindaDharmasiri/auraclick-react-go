@@ -269,6 +269,59 @@ const AdminDashboard = () => {
     }
   };
 
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [allOrders, setAllOrders] = useState([]);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState('ALL');
+  const [showOrderDatePicker, setShowOrderDatePicker] = useState(false);
+  const [showOrderStatusDropdown, setShowOrderStatusDropdown] = useState(false);
+  const [orderDateRange, setOrderDateRange] = useState('Oct 1 - Oct 31, 2023');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('Status');
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5555/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (response.ok) {
+        // Update both orders and allOrders state
+        const updatedOrders = orders.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        );
+        const updatedAllOrders = allOrders.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        );
+        setOrders(updatedOrders);
+        setAllOrders(updatedAllOrders);
+        toast.success('Order status updated successfully!');
+      } else {
+        toast.error('Failed to update order status');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status');
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'paid': return 'bg-green-500/20 text-green-400';
+      case 'processing': return 'bg-blue-500/20 text-blue-400';
+      case 'shipped': return 'bg-purple-500/20 text-purple-400';
+      case 'delivered': return 'bg-green-600/20 text-green-300';
+      case 'cancelled': return 'bg-red-500/20 text-red-400';
+      default: return 'bg-gray-500/20 text-gray-400';
+    }
+  };
+
   useEffect(() => {
     const type = localStorage.getItem('userType') || 'customer';
     setUserType(type);
@@ -285,12 +338,16 @@ const AdminDashboard = () => {
       setUser(JSON.parse(userInfo));
     }
 
-    // Load gear data
+    // Load data based on current page
     if (type === 'admin') {
-      loadGear();
-      loadCategories();
-      loadStatuses();
-      loadBrands();
+      if (location.pathname === '/admin/orders') {
+        loadOrders();
+      } else if (location.pathname === '/admin/inventory') {
+        loadGear();
+        loadCategories();
+        loadStatuses();
+        loadBrands();
+      }
     }
 
     // Close dropdowns when clicking outside
@@ -305,7 +362,47 @@ const AdminDashboard = () => {
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [location.pathname]); // Add location.pathname as dependency
+
+  const loadOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const response = await fetch('http://localhost:5555/api/orders', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAllOrders(data);
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const filterOrdersByStatus = (status) => {
+    setSelectedOrderStatus(status);
+    if (status === 'ALL') {
+      setOrders(allOrders);
+    } else {
+      setOrders(allOrders.filter(order => order.status === status));
+    }
+  };
+
+  const handleOrderStatusDropdownFilter = (status) => {
+    setOrderStatusFilter(status === 'ALL' ? 'Status' : status);
+    setShowOrderStatusDropdown(false);
+    filterOrdersByStatus(status);
+  };
+
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
 
   const loadGear = async (page = 0, search = '', category = '', status = '') => {
     try {
@@ -512,6 +609,294 @@ const AdminDashboard = () => {
   }
 
   const renderContent = () => {
+    if (location.pathname === '/admin/orders') {
+      return (
+        <div className="p-8 flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Orders (Month)</p>
+              <div className="flex items-end justify-between">
+                <h3 className="text-3xl font-bold">{orders.length}</h3>
+                <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">trending_up</span> +18%
+                </span>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Paid Orders</p>
+              <div className="flex items-end justify-between">
+                <h3 className="text-3xl font-bold">{orders.filter(order => order.status === 'PAID').length}</h3>
+                <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">payments</span> Paid
+                </span>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Order Revenue</p>
+              <div className="flex items-end justify-between">
+                <h3 className="text-3xl font-bold">LKR {orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0).toLocaleString()}</h3>
+                <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">trending_up</span> +22%
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
+              <button 
+                onClick={() => filterOrdersByStatus('ALL')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedOrderStatus === 'ALL' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">receipt_long</span>
+                All Orders
+              </button>
+              <button 
+                onClick={() => filterOrdersByStatus('PAID')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedOrderStatus === 'PAID' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">payments</span>
+                Paid
+              </button>
+              <button 
+                onClick={() => filterOrdersByStatus('PROCESSING')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedOrderStatus === 'PROCESSING' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">pending</span>
+                Processing
+              </button>
+              <button 
+                onClick={() => filterOrdersByStatus('SHIPPED')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedOrderStatus === 'SHIPPED' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">local_shipping</span>
+                Shipped
+              </button>
+              <button 
+                onClick={() => filterOrdersByStatus('DELIVERED')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedOrderStatus === 'DELIVERED' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">check_circle</span>
+                Delivered
+              </button>
+              <button 
+                onClick={() => filterOrdersByStatus('CANCELLED')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedOrderStatus === 'CANCELLED' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">cancel</span>
+                Cancelled
+              </button>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="relative">
+                <button 
+                  onClick={() => setShowOrderDatePicker(!showOrderDatePicker)}
+                  className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-[#3b4754] rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-[#283039]"
+                >
+                  <span className="material-symbols-outlined text-lg">calendar_month</span>
+                  {orderDateRange}
+                  <span className="material-symbols-outlined text-lg">arrow_drop_down</span>
+                </button>
+                {showOrderDatePicker && (
+                  <div className="absolute top-full mt-2 right-0 bg-white dark:bg-[#283039] border border-slate-200 dark:border-[#3b4754] rounded-lg shadow-lg z-50 p-4 min-w-[280px]">
+                    <div className="space-y-3">
+                      <button 
+                        onClick={() => { setOrderDateRange('Last 7 days'); setShowOrderDatePicker(false); }}
+                        className="block w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] rounded text-sm"
+                      >
+                        Last 7 days
+                      </button>
+                      <button 
+                        onClick={() => { setOrderDateRange('Last 30 days'); setShowOrderDatePicker(false); }}
+                        className="block w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] rounded text-sm"
+                      >
+                        Last 30 days
+                      </button>
+                      <button 
+                        onClick={() => { setOrderDateRange('All time'); setShowOrderDatePicker(false); }}
+                        className="block w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] rounded text-sm"
+                      >
+                        All time
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowOrderStatusDropdown(!showOrderStatusDropdown)}
+                  className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-[#3b4754] rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-[#283039]"
+                >
+                  <span className="material-symbols-outlined text-lg">filter_list</span>
+                  {orderStatusFilter}
+                  <span className="material-symbols-outlined text-lg">arrow_drop_down</span>
+                </button>
+                {showOrderStatusDropdown && (
+                  <div className="absolute top-full mt-2 right-0 bg-white dark:bg-[#283039] border border-slate-200 dark:border-[#3b4754] rounded-lg shadow-lg z-50 min-w-[160px]">
+                    <button 
+                      onClick={() => handleOrderStatusDropdownFilter('ALL')}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] text-sm first:rounded-t-lg"
+                    >
+                      All Statuses
+                    </button>
+                    <button 
+                      onClick={() => handleOrderStatusDropdownFilter('PAID')}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] text-sm"
+                    >
+                      Paid
+                    </button>
+                    <button 
+                      onClick={() => handleOrderStatusDropdownFilter('PROCESSING')}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] text-sm"
+                    >
+                      Processing
+                    </button>
+                    <button 
+                      onClick={() => handleOrderStatusDropdownFilter('SHIPPED')}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] text-sm"
+                    >
+                      Shipped
+                    </button>
+                    <button 
+                      onClick={() => handleOrderStatusDropdownFilter('DELIVERED')}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] text-sm"
+                    >
+                      Delivered
+                    </button>
+                    <button 
+                      onClick={() => handleOrderStatusDropdownFilter('CANCELLED')}
+                      className="block w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-[#3b4754] text-sm last:rounded-b-lg"
+                    >
+                      Cancelled
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-[#1a1f26] border-b border-slate-200 dark:border-slate-800">
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Order ID</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Customer</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Items</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Amount</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-[#283039]">
+                {loadingOrders ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <span className="ml-2">Loading orders...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : orders.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <span className="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600">receipt_long</span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No orders yet</h3>
+                          <p className="text-slate-500 dark:text-slate-400">Orders will appear here when customers make purchases.</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  orders.map((order, index) => (
+                    <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-[#283039]/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold">{order.orderNumber}</span>
+                          <span className="text-xs text-slate-500">{new Date(order.orderDate).toLocaleDateString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                            <span className="text-xs font-bold">
+                              {order.user?.firstName?.charAt(0) || 'U'}{order.user?.lastName?.charAt(0) || 'U'}
+                            </span>
+                          </div>
+                          <span className="text-sm font-medium">
+                            {order.user?.firstName} {order.user?.lastName} 
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm">
+                          <div>{order.orderItems?.length || 0} item(s)</div>
+                          <div className="text-xs text-slate-500">
+                            {order.payment?.cardType || 'Card'} ending {order.payment?.cardLast4}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold">LKR {order.totalAmount?.toLocaleString()}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${getStatusColor(order.status)}`}>
+                          {order.status?.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <select
+                            value={order.status || ''}
+                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                            className="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-3 py-1 text-sm text-slate-900 dark:text-white"
+                          >
+                            <option value="PAID">Paid</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="SHIPPED">Shipped</option>
+                            <option value="DELIVERED">Delivered</option>
+                            <option value="CANCELLED">Cancelled</option>
+                          </select>
+                          <button 
+                            onClick={() => handleViewOrder(order)}
+                            className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold"
+                          >
+                            View
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+    
     if (location.pathname === '/admin/bookings') {
       return (
         <div className="p-8 flex flex-col gap-6">
@@ -1778,6 +2163,12 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium">Bookings</span>
               </Link>
               <Link className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                location.pathname === '/admin/orders' ? 'sidebar-active text-white bg-border-dark border-l-4 border-primary' : 'text-slate-600 dark:text-muted-text hover:bg-slate-100 dark:hover:bg-border-dark'
+              }`} to="/admin/orders">
+                <span className="material-symbols-outlined">receipt_long</span>
+                <span className="text-sm font-medium">Order Management</span>
+              </Link>
+              <Link className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                 location.pathname === '/admin/inventory' ? 'sidebar-active text-white bg-border-dark border-l-4 border-primary' : 'text-slate-600 dark:text-muted-text hover:bg-slate-100 dark:hover:bg-border-dark'
               }`} to="/admin/inventory">
                 <span className="material-symbols-outlined">inventory_2</span>
@@ -2016,6 +2407,58 @@ const AdminDashboard = () => {
               >
                 Add
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {showOrderDetails && selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-[#111418] rounded-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+              <h3 className="text-xl font-bold dark:text-white">Order Details</h3>
+              <button 
+                onClick={() => setShowOrderDetails(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h4 className="font-semibold mb-2 dark:text-white">Order Information</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Order ID: {selectedOrder.orderNumber}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Date: {new Date(selectedOrder.orderDate).toLocaleDateString()}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Status: {selectedOrder.status}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2 dark:text-white">Customer Information</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{selectedOrder.user?.firstName} {selectedOrder.user?.lastName}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{selectedOrder.user?.email}</p>
+                </div>
+              </div>
+              <div className="mb-6">
+                <h4 className="font-semibold mb-3 dark:text-white">Order Items</h4>
+                <div className="space-y-2">
+                  {selectedOrder.orderItems?.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <div>
+                        <p className="font-medium dark:text-white">{item.gear?.name}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Quantity: {item.quantity}</p>
+                      </div>
+                      <p className="font-semibold dark:text-white">LKR {item.price?.toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold dark:text-white">Total Amount:</span>
+                  <span className="text-lg font-bold text-primary">LKR {selectedOrder.totalAmount?.toLocaleString()}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

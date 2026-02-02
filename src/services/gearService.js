@@ -16,10 +16,10 @@ class GearService {
   async createGear(gearData, images) {
     const formData = new FormData();
     
-    // Add gear data
+    // Add gear data - always include required fields
     Object.keys(gearData).forEach(key => {
-      if (gearData[key] !== null && gearData[key] !== '') {
-        formData.append(key, gearData[key]);
+      if (gearData[key] !== null && gearData[key] !== undefined) {
+        formData.append(key, gearData[key] || '');
       }
     });
 
