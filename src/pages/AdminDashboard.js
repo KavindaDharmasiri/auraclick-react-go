@@ -288,6 +288,78 @@ const AdminDashboard = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState('Status');
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [metrics, setMetrics] = useState({
+    totalBookings: 0,
+    pendingBookings: 0,
+    revenue: 0,
+    totalBookingsChange: '+0%',
+    pendingBookingsChange: '+0%',
+    revenueChange: '+0%'
+  });
+  const [bookings, setBookings] = useState([]);
+  const [bookingFilters, setBookingFilters] = useState({
+    bookingType: '',
+    fromDate: '2026-01-01',
+    toDate: '2026-12-31',
+    bookingStatus: 'PENDING',
+    pageNumber: 0,
+    pageSize: 10
+  });
+  const [bookingCount, setBookingCount] = useState(0);
+
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/admin/metrics');
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        setMetrics(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/admin/getBookingTable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingFilters)
+      });
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        setBookings(data.data);
+        setBookingCount(data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    }
+  };
+
+  const updateBookingStatus = async (bookingId, bookingStatus, paymentStatus) => {
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/admin/updateStatuses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId,
+          bookingStatus,
+          paymentStatus
+        })
+      });
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        fetchBookings();
+        fetchMetrics();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -350,6 +422,10 @@ const AdminDashboard = () => {
     // Load data based on current page
     if (type === 'admin') {
       loadOrders(); // Load orders for all admin pages
+      if (location.pathname === '/admin/bookings') {
+        fetchMetrics();
+        fetchBookings();
+      }
       if (location.pathname === '/admin/inventory') {
         loadGear();
         loadCategories();
@@ -370,7 +446,7 @@ const AdminDashboard = () => {
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [location.pathname]); // Add location.pathname as dependency
+  }, [location.pathname, bookingFilters]); // Add bookingFilters as dependency
 
   const loadOrders = async () => {
     try {
@@ -915,46 +991,78 @@ const AdminDashboard = () => {
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
               <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Bookings (Month)</p>
               <div className="flex items-end justify-between">
-                <h3 className="text-3xl font-bold">128</h3>
-                <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">trending_up</span> +12%
+                <h3 className="text-3xl font-bold">{metrics.totalBookings}</h3>
+                <span className={`text-sm font-medium flex items-center gap-1 ${
+                  metrics.totalBookingsChange.startsWith('+') ? 'text-[#0bda5b]' : 'text-[#fa6238]'
+                }`}>
+                  <span className="material-symbols-outlined text-sm">
+                    {metrics.totalBookingsChange.startsWith('+') ? 'trending_up' : 'trending_down'}
+                  </span> {metrics.totalBookingsChange}
                 </span>
               </div>
             </div>
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
               <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Confirmations</p>
               <div className="flex items-end justify-between">
-                <h3 className="text-3xl font-bold">14</h3>
-                <span className="text-[#fa6238] text-sm font-medium flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">trending_down</span> -5%
+                <h3 className="text-3xl font-bold">{metrics.pendingBookings}</h3>
+                <span className={`text-sm font-medium flex items-center gap-1 ${
+                  metrics.pendingBookingsChange.startsWith('+') ? 'text-[#0bda5b]' : 'text-[#fa6238]'
+                }`}>
+                  <span className="material-symbols-outlined text-sm">
+                    {metrics.pendingBookingsChange.startsWith('+') ? 'trending_up' : 'trending_down'}
+                  </span> {metrics.pendingBookingsChange}
                 </span>
               </div>
             </div>
             <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-[#3b4754] p-6 rounded-xl flex flex-col gap-1">
               <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Monthly Revenue</p>
               <div className="flex items-end justify-between">
-                <h3 className="text-3xl font-bold">$12,450</h3>
-                <span className="text-[#0bda5b] text-sm font-medium flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">trending_up</span> +8%
+                <h3 className="text-3xl font-bold">LKR {metrics.revenue}</h3>
+                <span className={`text-sm font-medium flex items-center gap-1 ${
+                  metrics.revenueChange.startsWith('+') ? 'text-[#0bda5b]' : 'text-[#fa6238]'
+                }`}>
+                  <span className="material-symbols-outlined text-sm">
+                    {metrics.revenueChange.startsWith('+') ? 'trending_up' : 'trending_down'}
+                  </span> {metrics.revenueChange}
                 </span>
               </div>
             </div>
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto">
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium">
+              <button 
+                onClick={() => setBookingFilters(prev => ({ ...prev, bookingType: '', pageNumber: 0 }))}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  bookingFilters.bookingType === '' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
                 <span className="material-symbols-outlined text-lg">list</span>
                 All Bookings
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button 
+                onClick={() => setBookingFilters(prev => ({ ...prev, bookingType: 'PHO', pageNumber: 0 }))}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  bookingFilters.bookingType === 'PHO' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
                 <span className="material-symbols-outlined text-lg">camera</span>
                 Photoshoots
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button 
+                onClick={() => setBookingFilters(prev => ({ ...prev, bookingType: 'STU', pageNumber: 0 }))}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  bookingFilters.bookingType === 'STU' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
                 <span className="material-symbols-outlined text-lg">flash_on</span>
                 Studio
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white rounded-lg text-sm font-medium transition-colors">
+              <button 
+                onClick={() => setBookingFilters(prev => ({ ...prev, bookingType: 'WED', pageNumber: 0 }))}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  bookingFilters.bookingType === 'WED' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-[#283039] hover:bg-slate-200 dark:hover:bg-[#3b4754] text-slate-700 dark:text-white'
+                }`}
+              >
                 <span className="material-symbols-outlined text-lg">favorite</span>
                 Weddings
               </button>
@@ -962,13 +1070,19 @@ const AdminDashboard = () => {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-[#3b4754] rounded-lg text-sm font-medium">
                 <span className="material-symbols-outlined text-lg">calendar_month</span>
-                Oct 1 - Oct 31, 2023
+                {new Date(bookingFilters.fromDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(bookingFilters.toDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 <span className="material-symbols-outlined text-lg">arrow_drop_down</span>
               </button>
-              <button className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-[#3b4754] rounded-lg text-sm font-medium">
-                <span className="material-symbols-outlined text-lg">filter_list</span>
-                Status
-              </button>
+              <select 
+                value={bookingFilters.bookingStatus}
+                onChange={(e) => setBookingFilters(prev => ({ ...prev, bookingStatus: e.target.value, pageNumber: 0 }))}
+                className="flex items-center gap-2 px-3 py-2 border border-slate-200 dark:border-[#3b4754] rounded-lg text-sm font-medium bg-white dark:bg-[#111418]"
+              >
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
             </div>
           </div>
           <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
@@ -984,56 +1098,119 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-[#283039]">
-                {mockBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-slate-50 dark:hover:bg-[#283039]/20 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{booking.date}</span>
-                        <span className="text-xs text-slate-500">{booking.time}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
-                          <img className="w-full h-full object-cover" src={booking.avatar} alt={`${booking.client} profile`} />
+                {bookings.map((booking) => {
+                  const getStatusColor = (status) => {
+                    switch(status) {
+                      case 'PENDING': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+                      case 'CONFIRMED': return 'bg-blue-50 text-blue-700 border-blue-200';
+                      case 'COMPLETED': return 'bg-green-50 text-green-700 border-green-200';
+                      case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200';
+                      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+                    }
+                  };
+                  
+                  const getPaymentIcon = (status) => {
+                    switch(status) {
+                      case 'Paid': return { icon: 'check_circle', color: 'text-green-500' };
+                      case 'Partial': return { icon: 'schedule', color: 'text-yellow-500' };
+                      case 'Completed': return { icon: 'check_circle', color: 'text-green-500' };
+                      default: return { icon: 'cancel', color: 'text-red-500' };
+                    }
+                  };
+                  
+                  const mapPaymentStatusToAPI = (displayStatus) => {
+                    switch(displayStatus) {
+                      case 'Paid': return 'PAID';
+                      case 'Partial': return 'PARTIALLY_PAID';
+                      case 'Completed': return 'PAID';
+                      default: return 'UNPAID';
+                    }
+                  };
+                  
+                  const getServiceIcon = (service) => {
+                    if (service.includes('Studio')) return 'flash_on';
+                    if (service.includes('Wedding')) return 'favorite';
+                    return 'camera';
+                  };
+                  
+                  const paymentInfo = getPaymentIcon(booking.paymentStatus);
+                  
+                  return (
+                    <tr key={booking.bookingId} className="hover:bg-slate-50 dark:hover:bg-[#283039]/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold">{new Date(booking.bookingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          <span className="text-xs text-slate-500">{booking.duration}</span>
                         </div>
-                        <span className="text-sm font-medium">{booking.client}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                        <span className="material-symbols-outlined text-lg text-primary">{booking.icon}</span>
-                        <span className="text-sm">{booking.service}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${booking.statusColor}`}>{booking.status}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <span className={`material-symbols-outlined text-base ${booking.paymentColor}`}>{booking.paymentIcon}</span>
-                        <span>{booking.payment}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold">
-                        {booking.status === 'COMPLETED' ? 'View' : 'Edit'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-bold">{booking.customerName.charAt(0)}</span>
+                          </div>
+                          <span className="text-sm font-medium">{booking.customerName}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                          <span className="material-symbols-outlined text-lg text-primary">{getServiceIcon(booking.service)}</span>
+                          <span className="text-sm">{booking.service}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <select
+                          value={booking.bookingStatus}
+                          onChange={(e) => updateBookingStatus(booking.bookingId, e.target.value, mapPaymentStatusToAPI(booking.paymentStatus))}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${getStatusColor(booking.bookingStatus)} bg-transparent`}
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="CONFIRMED">CONFIRMED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        <select
+                          value={booking.paymentStatus}
+                          onChange={(e) => {
+                            const apiStatus = mapPaymentStatusToAPI(e.target.value);
+                            updateBookingStatus(booking.bookingId, booking.bookingStatus, apiStatus);
+                          }}
+                          className="text-sm bg-transparent border border-slate-300 dark:border-slate-600 rounded px-2 py-1"
+                        >
+                          <option value="Paid">Paid</option>
+                          <option value="Partial">Partial</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold">
+                          {booking.bookingStatus === 'COMPLETED' ? 'View' : 'Edit'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <div className="px-6 py-4 flex items-center justify-between border-t border-slate-100 dark:divide-[#283039] bg-slate-50 dark:bg-[#1a1f26]">
-              <p className="text-sm text-slate-500">Showing 1 to 4 of 128 bookings</p>
+              <p className="text-sm text-slate-500">
+                Showing {bookingFilters.pageNumber * bookingFilters.pageSize + 1} to {Math.min((bookingFilters.pageNumber + 1) * bookingFilters.pageSize, bookingCount)} of {bookingCount} bookings
+              </p>
               <div className="flex items-center gap-2">
-                <button className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754] disabled:opacity-50">
+                <button 
+                  onClick={() => setBookingFilters(prev => ({ ...prev, pageNumber: Math.max(0, prev.pageNumber - 1) }))}
+                  disabled={bookingFilters.pageNumber === 0}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754] disabled:opacity-50"
+                >
                   <span className="material-symbols-outlined">chevron_left</span>
                 </button>
-                <button className="size-9 rounded-lg bg-primary text-white text-sm font-bold">1</button>
-                <button className="size-9 rounded-lg border border-slate-200 dark:border-[#3b4754] text-sm hover:bg-slate-100 dark:hover:bg-[#283039]">2</button>
-                <button className="size-9 rounded-lg border border-slate-200 dark:border-[#3b4754] text-sm hover:bg-slate-100 dark:hover:bg-[#283039]">3</button>
-                <button className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754]">
+                <span className="px-3 py-1 text-sm font-medium">{bookingFilters.pageNumber + 1}</span>
+                <button 
+                  onClick={() => setBookingFilters(prev => ({ ...prev, pageNumber: prev.pageNumber + 1 }))}
+                  disabled={(bookingFilters.pageNumber + 1) * bookingFilters.pageSize >= bookingCount}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-[#3b4754] disabled:opacity-50"
+                >
                   <span className="material-symbols-outlined">chevron_right</span>
                 </button>
               </div>
@@ -1272,7 +1449,7 @@ const AdminDashboard = () => {
                           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">{gear.category}</span>
                         </td>
                         <td className="px-6 py-4 text-sm font-medium">{gear.stock} / {gear.totalStock}</td>
-                        <td className="px-6 py-4 text-sm font-bold">${gear.rentalPrice}<span className="text-slate-500 font-normal">/day</span></td>
+                        <td className="px-6 py-4 text-sm font-bold">LKR {gear.rentalPrice}<span className="text-slate-500 font-normal">/day</span></td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <div className={`size-2 rounded-full ${gear.status === 'In Stock' ? 'bg-emerald-500' : gear.status === 'Out on Rent' ? 'bg-orange-500' : 'bg-red-500'}`}></div>
