@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
+import PaymentPopup from '../components/PaymentPopup';
 
 const StudioBookings = () => {
   const [selectedStudio, setSelectedStudio] = useState('Cyc Wall');
-  const [selectedDate, setSelectedDate] = useState(7);
-  const [selectedTime, setSelectedTime] = useState('11:00 - 15:00');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const studios = [
     {
+      id: 1,
       name: 'Main Hall',
       description: '1,200 sq ft • High Ceilings',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABq0KAmAaaRPVcIRYqKkLpZq9Z_h1ZHQetsd4ROe4An875HB7wjE6wt-0eVH02QLSDfUe5NlTdguLz9EDVrOE9UenrhIp0B3Ry8g_8cIV1u_kCteoaKV9GqlZ0GvDLjl5KlQl_Blkmd1ZXtOWx87E4nQin7aG1QI0P_C8epdFZJHHIxzd0XWev0OZbNVQ4Rc9q9RB3BLauF3-gSkUON46KclvtGg7p300a1Wf5GT7woFL7iJ4C_stqBeKkPPKAsqQHcOGrNerIZqmh',
@@ -17,6 +23,7 @@ const StudioBookings = () => {
       fullDay: 750
     },
     {
+      id: 2,
       name: 'Cyc Wall',
       description: 'Infinite White • Corner Cove',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCyGkt5evhjY0yZvIhHNuptGcYcw2eOig9eq4Pyw-BXHpYNNp9OJGEEL-dvD5Z-szbZ7MmfY3FSAUH7qLnS3e7r0jteNnAcC_p9fmPefQvgA6eBV06u4PpSqn0M-miiouyvhLvKN9S-_IJb-yxtB99BCrphfU0IKjwK7T4Kql0CkUSQCNDPkMhAEctVYEvaM-HMyBbd47gJpPjPp76YkrKP2QAlVd8KQWk4BysYn2Q4bin26chWL68cKGG-wzBS0LfCa1nndf8MIaU4',
@@ -26,6 +33,7 @@ const StudioBookings = () => {
       fullDay: 600
     },
     {
+      id: 3,
       name: 'Boudoir Suite',
       description: 'Natural Light • Vintage Decor',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA3vitJeboCNwjzlhuBovgq8Cq83WO3s5nfGN8oIw0Ypq8_CD_wvR4k8l8r53mvLUMLixoyY_x9Y82FzreD9UXOZzTYkSt5_WfQRQOFf9rj2p2VxYZUhTVcxUOk8dy0A_i0G68SCmnvRR2xlM3bKSqEphQo4BMLV4Qxd47VxcuGa4Xv2-cwkrUStLO7DTVUgnSSQQsUNKJEXWVh6EAVbBuIZZESXazojak64wI8lLWaNaL9PDOZfPrWCkV-FZC7mwXA4NaeABCQOy-A',
@@ -36,12 +44,80 @@ const StudioBookings = () => {
     }
   ];
 
-  const timeSlots = [
-    { time: '09:00 - 11:00', available: true },
-    { time: '11:00 - 15:00', available: true, selected: true },
-    { time: '15:00 - 19:00', available: true },
-    { time: '19:00 - 21:00', available: false }
+  const allTimeSlots = [
+    { id: 1, time: '09:00 - 11:00' },
+    { id: 2, time: '11:00 - 13:00' },
+    { id: 3, time: '13:00 - 15:00' },
+    { id: 4, time: '15:00 - 17:00' },
+    { id: 5, time: '17:00 - 19:00' },
+    { id: 6, time: '19:00 - 21:00' }
   ];
+
+  const fetchAvailableTimeSlots = async (date) => {
+    setLoading(true);
+    try {
+      const selectedStudioData = studios.find(s => s.name === selectedStudio);
+      const studioId = selectedStudioData?.id || 1;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      const response = await fetch(`http://localhost:5555/api/bookings/studioBooking/getAvailableTimeSlots?studioId=${studioId}&bookingDate=${formattedDate}`);
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        setAvailableTimeSlots(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching time slots:', error);
+      setAvailableTimeSlots([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAvailableTimeSlots(selectedDate);
+  }, [selectedDate, selectedStudio]);
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    return days;
+  };
+
+  const handleDateClick = (date) => {
+    if (date && date >= new Date().setHours(0,0,0,0)) {
+      setSelectedDate(date);
+      setSelectedTimeSlots([]);
+    }
+  };
+
+  const handleTimeSlotToggle = (slotId) => {
+    setSelectedTimeSlots(prev => 
+      prev.includes(slotId) 
+        ? prev.filter(id => id !== slotId)
+        : [...prev, slotId]
+    );
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev);
+      newMonth.setMonth(prev.getMonth() + direction);
+      return newMonth;
+    });
+  };
 
   const equipment = [
     { icon: 'light_mode', name: 'Lighting', description: '2x Profoto D2 500w' },
@@ -167,57 +243,80 @@ const StudioBookings = () => {
               {/* Availability Calendar */}
               <div className="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-800">
                 <div className="flex items-center justify-between mb-6">
-                  <p className="font-bold">May 2024</p>
+                  <p className="font-bold">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                   <div className="flex gap-2">
-                    <button className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-700">
+                    <button 
+                      onClick={() => navigateMonth(-1)}
+                      className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-700"
+                    >
                       <span className="material-symbols-outlined text-sm">chevron_left</span>
                     </button>
-                    <button className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-700">
+                    <button 
+                      onClick={() => navigateMonth(1)}
+                      className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-700"
+                    >
                       <span className="material-symbols-outlined text-sm">chevron_right</span>
                     </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-7 gap-2 text-center mb-4">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                    <span key={day} className="text-[10px] font-bold text-gray-600 dark:text-slate-400 uppercase">{day}</span>
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                    <span key={`day-${index}`} className="text-[10px] font-bold text-gray-600 dark:text-slate-400 uppercase">{day}</span>
                   ))}
-                  {[28, 29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((date) => (
-                    <button 
-                      key={date}
-                      onClick={() => setSelectedDate(date)}
-                      className={`aspect-square text-xs rounded-lg ${
-                        date < 1 ? 'text-gray-600 dark:text-slate-400 cursor-not-allowed' :
-                        selectedDate === date ? 'bg-primary text-gray-900 dark:text-white font-bold shadow-lg shadow-primary/40' :
-                        date === 10 ? 'relative flex items-center justify-center hover:bg-primary/20' :
-                        'hover:bg-primary/20'
-                      }`}
-                      disabled={date < 1}
-                    >
-                      {date}
-                      {date === 10 && (
-                        <div className="absolute bottom-1 size-1 bg-red-500 rounded-full"></div>
-                      )}
-                    </button>
-                  ))}
+                  {getDaysInMonth(currentMonth).map((date, index) => {
+                    const isToday = date && date.toDateString() === new Date().toDateString();
+                    const isSelected = date && date.toDateString() === selectedDate.toDateString();
+                    const isPast = date && date < new Date().setHours(0,0,0,0);
+                    
+                    return (
+                      <button 
+                        key={index}
+                        onClick={() => handleDateClick(date)}
+                        disabled={!date || isPast}
+                        className={`aspect-square text-xs rounded-lg ${
+                          !date ? 'invisible' :
+                          isPast ? 'text-gray-600 dark:text-slate-400 cursor-not-allowed' :
+                          isSelected ? 'bg-primary text-white font-bold shadow-lg shadow-primary/40' :
+                          isToday ? 'bg-primary/20 text-primary font-bold' :
+                          'hover:bg-primary/20'
+                        }`}
+                      >
+                        {date?.getDate()}
+                      </button>
+                    );
+                  })}
                 </div>
                 <div className="space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Available Slots (May {selectedDate})</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {timeSlots.map((slot) => (
-                      <button 
-                        key={slot.time}
-                        onClick={() => slot.available && setSelectedTime(slot.time)}
-                        className={`py-2 px-3 rounded-lg text-xs font-medium ${
-                          !slot.available ? 'bg-slate-700 text-gray-600 dark:text-slate-400 line-through cursor-not-allowed border-none' :
-                          selectedTime === slot.time ? 'bg-primary text-gray-900 dark:text-white font-bold border border-primary' :
-                          'border border-slate-700 hover:border-primary hover:bg-primary/5'
-                        }`}
-                        disabled={!slot.available}
-                      >
-                        {slot.time}
-                      </button>
-                    ))}
-                  </div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Available Slots ({selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                  </p>
+                  {loading ? (
+                    <div className="text-center py-4">
+                      <span className="text-slate-400">Loading...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {allTimeSlots.map((slot) => {
+                        const isAvailable = availableTimeSlots.includes(slot.id);
+                        const isSelected = selectedTimeSlots.includes(slot.id);
+                        
+                        return (
+                          <button 
+                            key={slot.id}
+                            onClick={() => isAvailable && handleTimeSlotToggle(slot.id)}
+                            className={`py-2 px-3 rounded-lg text-xs font-medium ${
+                              !isAvailable ? 'bg-slate-700 text-slate-400 line-through cursor-not-allowed' :
+                              isSelected ? 'bg-primary text-white font-bold border border-primary' :
+                              'border border-slate-700 hover:border-primary hover:bg-primary/5'
+                            }`}
+                            disabled={!isAvailable}
+                          >
+                            {slot.time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -238,7 +337,11 @@ const StudioBookings = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="opacity-80">Date</span>
-                    <span className="font-bold">May {selectedDate}, 2024</span>
+                    <span className="font-bold">{selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="opacity-80">Time Slots</span>
+                    <span className="font-bold">{selectedTimeSlots.length} selected</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-end mb-6">
@@ -250,7 +353,10 @@ const StudioBookings = () => {
                   </div>
                   <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded">Tax included</span>
                 </div>
-                <button className="w-full py-4 bg-white text-primary font-black rounded-xl hover:bg-gray-200 dark:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                <button 
+                  onClick={() => setShowPaymentPopup(true)}
+                  className="w-full py-4 bg-white text-primary font-black rounded-xl hover:bg-gray-200 dark:bg-slate-100 transition-colors flex items-center justify-center gap-2"
+                >
                   Reserve Now
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
@@ -274,6 +380,20 @@ const StudioBookings = () => {
           </div>
         </div>
       </main>
+      
+      <PaymentPopup 
+        isOpen={showPaymentPopup}
+        onClose={() => setShowPaymentPopup(false)}
+        bookingDetails={{
+          studio: selectedStudio,
+          studioId: studios.find(s => s.name === selectedStudio)?.id || 1,
+          duration: '4 Hours (Half Day)',
+          date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`,
+          timeSlots: selectedTimeSlots.map(id => allTimeSlots.find(slot => slot.id === id)?.time).filter(Boolean),
+          timeSlotIds: selectedTimeSlots,
+          total: studios.find(s => s.name === selectedStudio)?.halfDay || 320
+        }}
+      />
     </div>
   );
 };
