@@ -1982,24 +1982,24 @@ const AdminDashboard = () => {
               <span className="text-muted-text font-medium text-sm">Total Revenue</span>
               <span className="text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded text-xs font-bold">+12.5%</span>
             </div>
-            <h3 className="text-3xl font-bold">$12,450.00</h3>
-            <p className="text-xs text-muted-text mt-2">vs. $11,020 last month</p>
+            <h3 className="text-3xl font-bold">LKR {orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0).toLocaleString()}</h3>
+            <p className="text-xs text-muted-text mt-2">vs. LKR {Math.round(orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0) * 0.885).toLocaleString()} last month</p>
           </div>
           <div className="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <span className="text-muted-text font-medium text-sm">Pending Bookings</span>
               <span className="material-symbols-outlined text-amber-500">pending_actions</span>
             </div>
-            <h3 className="text-3xl font-bold">18</h3>
-            <p className="text-xs text-muted-text mt-2">6 require immediate action</p>
+            <h3 className="text-3xl font-bold">{orders.filter(order => order.status === 'PROCESSING').length}</h3>
+            <p className="text-xs text-muted-text mt-2">{orders.filter(order => order.status === 'PAID').length} require immediate action</p>
           </div>
           <div className="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <span className="text-muted-text font-medium text-sm">Gear Out on Rent</span>
               <span className="material-symbols-outlined text-primary">shopping_bag</span>
             </div>
-            <h3 className="text-3xl font-bold">24 <span className="text-lg font-normal text-muted-text">items</span></h3>
-            <p className="text-xs text-muted-text mt-2">82% of total inventory</p>
+            <h3 className="text-3xl font-bold">{orders.reduce((sum, order) => sum + (order.orderItems?.length || 0), 0)} <span className="text-lg font-normal text-muted-text">items</span></h3>
+            <p className="text-xs text-muted-text mt-2">{Math.round((orders.reduce((sum, order) => sum + (order.orderItems?.length || 0), 0) / Math.max(totalElements, 1)) * 100)}% of total inventory</p>
           </div>
         </div>
         
