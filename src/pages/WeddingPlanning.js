@@ -5,6 +5,9 @@ import toast from "react-hot-toast";
 
 const WeddingPlanning = () => {
   const [selectedPackage, setSelectedPackage] = useState('Platinum');
+  const [visionText, setVisionText] = useState('');
+  const [generatedImage, setGeneratedImage] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     partner1: '',
     partner2: '',
@@ -108,6 +111,54 @@ const WeddingPlanning = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const generateAIImage = async () => {
+    if (!visionText.trim()) {
+      toast.error('Please describe your vision first');
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    // Mock AI generation with style-based images
+    const mockImages = {
+      'bohemian': 'https://images.unsplash.com/photo-1519741497674-611481863552?w=512&h=512&fit=crop',
+      'modern': 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?w=512&h=512&fit=crop',
+      'romantic': 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=512&h=512&fit=crop',
+      'industrial': 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=512&h=512&fit=crop',
+      'beach': 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=512&h=512&fit=crop',
+      'garden': 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=512&h=512&fit=crop',
+      'default': 'https://images.unsplash.com/photo-1519741497674-611481863552?w=512&h=512&fit=crop'
+    };
+
+    // Simple keyword matching for demo
+    let selectedImage = mockImages.default;
+    const text = visionText.toLowerCase();
+    
+    if (text.includes('bohemian') || text.includes('boho')) selectedImage = mockImages.bohemian;
+    else if (text.includes('modern') || text.includes('minimalist')) selectedImage = mockImages.modern;
+    else if (text.includes('romantic') || text.includes('classic')) selectedImage = mockImages.romantic;
+    else if (text.includes('industrial') || text.includes('urban')) selectedImage = mockImages.industrial;
+    else if (text.includes('beach') || text.includes('tropical')) selectedImage = mockImages.beach;
+    else if (text.includes('garden') || text.includes('outdoor')) selectedImage = mockImages.garden;
+
+    // Simulate API delay
+    setTimeout(() => {
+      setGeneratedImage(selectedImage);
+      setIsGenerating(false);
+      toast.success('AI vision generated successfully!');
+    }, 2000);
+  };
+
+  const handleQuickStyle = (style) => {
+    const stylePrompts = {
+      'Bohemian Chic': 'Bohemian wedding with macrame decorations, pampas grass, earth tones, and flowing fabrics',
+      'Modern Minimalist': 'Clean modern wedding with white and neutral colors, geometric shapes, minimal decor',
+      'Classic Romance': 'Traditional romantic wedding with roses, soft pastels, candles, and elegant details',
+      'Industrial Edge': 'Industrial wedding venue with exposed brick, metal accents, Edison bulbs, and urban style'
+    };
+    setVisionText(stylePrompts[style]);
   };
 
   const scrollToPackages = () => {
@@ -229,34 +280,61 @@ const WeddingPlanning = () => {
                     <textarea 
                       className="w-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-2xl p-6 text-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-slate-600 min-h-[200px] text-gray-900 dark:text-white" 
                       placeholder="e.g., 'A romantic tropical sunset on a secluded beach with gold accents and wild orchids' or 'A vintage English garden party with pastel hydrangeas and fairy lights'"
+                      value={visionText}
+                      onChange={(e) => setVisionText(e.target.value)}
+                      maxLength={850}
                     ></textarea>
                     <div className="absolute bottom-4 right-4 flex gap-2">
-                      <span className="px-2 py-1 rounded bg-gray-100 dark:bg-white/5 text-[10px] text-slate-500 uppercase font-bold">850 chars left</span>
+                      <span className="px-2 py-1 rounded bg-gray-100 dark:bg-white/5 text-[10px] text-slate-500 uppercase font-bold">{850 - visionText.length} chars left</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="text-xs font-semibold text-slate-500 mr-2 self-center">Quick Styles:</span>
-                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Bohemian Chic</button>
-                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Modern Minimalist</button>
-                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Classic Romance</button>
-                  <button className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors">Industrial Edge</button>
-                </div>
-                <Link to="/ai-booking">
-                  <button className="w-full bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 text-gray-900 dark:text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-primary/30 flex items-center justify-center gap-3 transition-transform active:scale-[0.98]">
-                    <span className="material-symbols-outlined">auto_fix_high</span>
-                    Visualize Your Day
+                  <button 
+                    onClick={() => handleQuickStyle('Bohemian Chic')}
+                    className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors"
+                  >
+                    Bohemian Chic
                   </button>
-                </Link>
+                  <button 
+                    onClick={() => handleQuickStyle('Modern Minimalist')}
+                    className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors"
+                  >
+                    Modern Minimalist
+                  </button>
+                  <button 
+                    onClick={() => handleQuickStyle('Classic Romance')}
+                    className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors"
+                  >
+                    Classic Romance
+                  </button>
+                  <button 
+                    onClick={() => handleQuickStyle('Industrial Edge')}
+                    className="px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-xs font-medium hover:border-primary transition-colors"
+                  >
+                    Industrial Edge
+                  </button>
+                </div>
+                <button 
+                  onClick={generateAIImage}
+                  disabled={isGenerating || !visionText.trim()}
+                  className="w-full bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 text-gray-900 dark:text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-primary/30 flex items-center justify-center gap-3 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="material-symbols-outlined">{isGenerating ? 'hourglass_empty' : 'auto_fix_high'}</span>
+                  {isGenerating ? 'Generating...' : 'Visualize Your Day'}
+                </button>
               </div>
               <div className="lg:col-span-7 space-y-8">
                 <div className="bg-white/3 backdrop-blur-md rounded-2xl p-8 h-full flex flex-col border border-primary/20">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                      <div className="size-2 rounded-full bg-purple-400 animate-pulse"></div>
+                      <div className={`size-2 rounded-full ${generatedImage ? 'bg-green-400' : 'bg-purple-400 animate-pulse'}`}></div>
                       <h4 className="font-bold text-xl">Visual Theme Preview</h4>
                     </div>
-                    <span className="text-xs text-slate-500 italic">Waiting for your description...</span>
+                    <span className="text-xs text-slate-500 italic">
+                      {isGenerating ? 'Generating...' : generatedImage ? 'AI Generated' : 'Waiting for your description...'}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
                     <div className="col-span-2 space-y-4">
@@ -285,9 +363,24 @@ const WeddingPlanning = () => {
                     </div>
                     <div className="col-span-1 space-y-4">
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Moodboard Piece</p>
-                      <div className="aspect-[3/4] rounded-xl bg-gray-100 dark:bg-white/5 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 gap-3 p-4 text-center">
-                        <span className="material-symbols-outlined text-slate-600 scale-150">image</span>
-                        <span className="text-[10px] text-slate-500">Theme imagery will generate here</span>
+                      <div className="aspect-[3/4] rounded-xl bg-gray-100 dark:bg-white/5 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 gap-3 p-4 text-center overflow-hidden">
+                        {isGenerating ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            <span className="text-[10px] text-slate-500">Generating...</span>
+                          </div>
+                        ) : generatedImage ? (
+                          <img 
+                            src={generatedImage} 
+                            alt="AI Generated Wedding Vision" 
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <>
+                            <span className="material-symbols-outlined text-slate-600 scale-150">image</span>
+                            <span className="text-[10px] text-slate-500">Theme imagery will generate here</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

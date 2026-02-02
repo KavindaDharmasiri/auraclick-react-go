@@ -259,12 +259,21 @@ const AdminDashboard = () => {
         condition: newGear.condition
       };
 
+      console.log('Gear data being sent:', gearData);
+      console.log('Images being sent:', newGear.image);
+
       await gearService.createGear(gearData, newGear.image);
       toast.success('Gear added successfully!');
-      setNewGear({ name: '', sku: '', category: '', stock: '', totalStock: '', rentalPrice: '', status: 'In Stock', description: '', brand: '', model: '', serialNumber: '', condition: 'Excellent', image: [] });
+      setNewGear({ 
+        name: '', parentSku: '', variantSku: '', upc: '', ean: '', category: '', subcategory: '', 
+        stock: '', totalStock: '', rentalPrice: '', status: 'In Stock', description: '', 
+        brand: '', model: '', serialNumber: '', condition: 'Excellent', image: [], 
+        attributes: {}, location: '', supplier: '', costPrice: '' 
+      });
       setShowAddGearModal(false);
       loadGear();
     } catch (error) {
+      console.error('Error creating gear:', error);
       toast.error(error.message || 'Failed to add gear');
     }
   };

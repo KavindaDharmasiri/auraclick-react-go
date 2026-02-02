@@ -14,28 +14,27 @@ class GearService {
   }
 
   async createGear(gearData, images) {
-    const formData = new FormData();
-    
-    // Add gear data - always include required fields
-    Object.keys(gearData).forEach(key => {
-      if (gearData[key] !== null && gearData[key] !== undefined) {
-        formData.append(key, gearData[key] || '');
-      }
-    });
-
-    // Add images
+    // Convert images to base64 or upload them first
+    const imageUrls = [];
     if (images && images.length > 0) {
-      images.forEach(image => {
-        formData.append('images', image);
-      });
+      for (const image of images) {
+        const base64 = await this.convertToBase64(image);
+        imageUrls.push(base64);
+      }
     }
 
-    const response = await fetch(`${API_BASE_URL}/gear`, {
+    const payload = {
+      ...gearData,
+      imageUrls: imageUrls
+    };
+
+    const response = await fetch(`${API_BASE_URL}/gear/create`, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      body: formData
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -43,6 +42,15 @@ class GearService {
       throw new Error(error);
     }
     return response.json();
+  }
+
+  convertToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
   }
 
   async updateGear(id, gearData) {
