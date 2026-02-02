@@ -120,7 +120,7 @@ const GearDetail = () => {
             <div className="aspect-square rounded-2xl overflow-hidden bg-slate-800">
               {gearItem.images && gearItem.images.length > 0 ? (
                 <img 
-                  src={`http://localhost:5555${gearItem.images[0]}`} 
+                  src={gearItem.images[0]} 
                   alt={gearItem.name}
                   className="w-full h-full object-cover"
                 />

@@ -1255,7 +1255,7 @@ const AdminDashboard = () => {
                           <div className="flex items-center gap-4">
                             <div className="size-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
                               {gear.images && gear.images.length > 0 ? (
-                                <img src={`http://localhost:5555${gear.images[0]}`} alt={gear.name} className="w-full h-full object-cover" />
+                                <img src={gear.images[0]} alt={gear.name} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="material-symbols-outlined text-primary">photo_camera</span>
                               )}

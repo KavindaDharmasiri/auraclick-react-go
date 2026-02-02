@@ -341,7 +341,7 @@ const GearRentals = () => {
                       {item.images && item.images.length > 0 ? (
                         <img 
                           className={`w-full h-full object-cover ${isUnavailable ? 'grayscale' : ''}`}
-                          src={`http://localhost:5555${item.images[0]}`}
+                          src={item.images[0]}
                           alt={item.name}
                         />
                       ) : (

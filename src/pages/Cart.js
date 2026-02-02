@@ -404,7 +404,7 @@ const Cart = () => {
                         className="size-16 rounded-lg bg-center bg-cover flex-shrink-0 border border-slate-700" 
                         style={{ 
                           backgroundImage: item.gear.images && item.gear.images.length > 0 
-                            ? `url('http://localhost:5555${item.gear.images[0]}')`
+                            ? `url('${item.gear.images[0]}')`
                             : 'none',
                           backgroundColor: item.gear.images && item.gear.images.length > 0 ? 'transparent' : '#374151'
                         }}
