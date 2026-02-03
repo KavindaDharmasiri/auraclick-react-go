@@ -99,7 +99,7 @@ const ManageBookings = () => {
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Bookings Table */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
           <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Total Bookings (Month)</h3>
@@ -130,7 +130,98 @@ const ManageBookings = () => {
         </div>
       </div>
 
-      {/* Bookings Table */}
+      {/* Filters */}
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 mb-8">
+        <h3 className="text-lg font-bold mb-4">Filters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Booking Type</label>
+            <select
+              value={filters.bookingType}
+              onChange={(e) => setFilters({...filters, bookingType: e.target.value})}
+              className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 focus:border-primary focus:outline-none"
+            >
+              <option value="PHO">Photoshoot</option>
+              <option value="STU">Studio</option>
+              <option value="WED">Wedding</option>
+              <option value="ALL">All Types</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">From Date</label>
+            <input
+              type="date"
+              value={filters.fromDate}
+              onChange={(e) => setFilters({...filters, fromDate: e.target.value})}
+              className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 focus:border-primary focus:outline-none"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">To Date</label>
+            <input
+              type="date"
+              value={filters.toDate}
+              onChange={(e) => setFilters({...filters, toDate: e.target.value})}
+              className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 focus:border-primary focus:outline-none"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Status</label>
+            <select
+              value={filters.bookingStatus}
+              onChange={(e) => setFilters({...filters, bookingStatus: e.target.value})}
+              className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 focus:border-primary focus:outline-none"
+            >
+              <option value="PENDING">Pending</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="ALL">All Status</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Page Size</label>
+            <select
+              value={filters.pageSize}
+              onChange={(e) => setFilters({...filters, pageSize: parseInt(e.target.value), pageNumber: 0})}
+              className="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 focus:border-primary focus:outline-none"
+            >
+              <option value={5}>5 per page</option>
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+              <option value={50}>50 per page</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => {
+              setFilters({
+                bookingType: 'PHO',
+                fromDate: '2026-01-01',
+                toDate: '2026-12-31',
+                bookingStatus: 'PENDING',
+                pageNumber: 0,
+                pageSize: 10
+              });
+            }}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+          >
+            Reset Filters
+          </button>
+          <button
+            onClick={() => fetchBookings()}
+            className="px-4 py-2 bg-primary text-gray-900 dark:text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            Apply Filters
+          </button>
+        </div>
+      </div>
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <table className="w-full">
           <thead className="bg-slate-900 border-b border-slate-700">

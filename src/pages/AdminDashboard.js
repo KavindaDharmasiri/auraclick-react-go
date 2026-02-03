@@ -1216,76 +1216,76 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white dark:bg-[#111418] border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold">Recent Client Activity</h3>
-                <button className="text-primary text-sm font-semibold">View All</button>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="size-2 rounded-full bg-primary"></div>
-                  <p className="text-sm flex-1">Emma Thompson updated the location for her <span className="font-semibold text-primary">Outdoor Portrait</span> session.</p>
-                  <span className="text-xs text-slate-500 italic">2 mins ago</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="size-2 rounded-full bg-amber-500"></div>
-                  <p className="text-sm flex-1">Payment received from <span className="font-semibold text-primary">David Chen</span> for Invoice #4492.</p>
-                  <span className="text-xs text-slate-500 italic">45 mins ago</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="size-2 rounded-full bg-green-500"></div>
-                  <p className="text-sm flex-1">Booking request confirmed for <span className="font-semibold text-primary">The Millers</span> Wedding Package.</p>
-                  <span className="text-xs text-slate-500 italic">2 hours ago</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <button className="size-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">
-                  <span className="material-symbols-outlined text-base">chevron_left</span>
-                </button>
-                <p className="text-sm font-bold">October 2023</p>
-                <button className="size-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">
-                  <span className="material-symbols-outlined text-base">chevron_right</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2">
-                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                <div></div><div></div><div></div><div></div><div></div>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">1</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">2</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">3</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">4</button>
-                <button className="h-8 flex items-center justify-center text-xs bg-primary text-white rounded-lg">5</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">6</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">7</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">8</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">9</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">10</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">11</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">12</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">13</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">14</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">15</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">16</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">17</button>
-                <button className="h-8 flex items-center justify-center text-xs bg-primary/20 text-primary font-bold rounded-lg">18</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">19</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">20</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">21</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">22</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">23</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">24</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">25</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">26</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">27</button>
-                <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">28</button>
-              </div>
-            </div>
-          </div>
+          {/*<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">*/}
+          {/*  <div className="lg:col-span-2 bg-white dark:bg-[#111418] border border-slate-200 dark:border-slate-800 rounded-xl p-6">*/}
+          {/*    <div className="flex items-center justify-between mb-6">*/}
+          {/*      <h3 className="font-bold">Recent Client Activity</h3>*/}
+          {/*      <button className="text-primary text-sm font-semibold">View All</button>*/}
+          {/*    </div>*/}
+          {/*    <div className="space-y-4">*/}
+          {/*      <div className="flex items-center gap-4">*/}
+          {/*        <div className="size-2 rounded-full bg-primary"></div>*/}
+          {/*        <p className="text-sm flex-1">Emma Thompson updated the location for her <span className="font-semibold text-primary">Outdoor Portrait</span> session.</p>*/}
+          {/*        <span className="text-xs text-slate-500 italic">2 mins ago</span>*/}
+          {/*      </div>*/}
+          {/*      <div className="flex items-center gap-4">*/}
+          {/*        <div className="size-2 rounded-full bg-amber-500"></div>*/}
+          {/*        <p className="text-sm flex-1">Payment received from <span className="font-semibold text-primary">David Chen</span> for Invoice #4492.</p>*/}
+          {/*        <span className="text-xs text-slate-500 italic">45 mins ago</span>*/}
+          {/*      </div>*/}
+          {/*      <div className="flex items-center gap-4">*/}
+          {/*        <div className="size-2 rounded-full bg-green-500"></div>*/}
+          {/*        <p className="text-sm flex-1">Booking request confirmed for <span className="font-semibold text-primary">The Millers</span> Wedding Package.</p>*/}
+          {/*        <span className="text-xs text-slate-500 italic">2 hours ago</span>*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*  <div className="bg-white dark:bg-[#111418] border border-slate-200 dark:border-slate-800 rounded-xl p-4">*/}
+          {/*    <div className="flex items-center justify-between mb-4">*/}
+          {/*      <button className="size-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">*/}
+          {/*        <span className="material-symbols-outlined text-base">chevron_left</span>*/}
+          {/*      </button>*/}
+          {/*      <p className="text-sm font-bold">October 2023</p>*/}
+          {/*      <button className="size-8 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">*/}
+          {/*        <span className="material-symbols-outlined text-base">chevron_right</span>*/}
+          {/*      </button>*/}
+          {/*    </div>*/}
+          {/*    <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2">*/}
+          {/*      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>*/}
+          {/*    </div>*/}
+          {/*    <div className="grid grid-cols-7 gap-1">*/}
+          {/*      <div></div><div></div><div></div><div></div><div></div>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">1</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">2</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">3</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">4</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs bg-primary text-white rounded-lg">5</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">6</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">7</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">8</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">9</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">10</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">11</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">12</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">13</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">14</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">15</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">16</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">17</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs bg-primary/20 text-primary font-bold rounded-lg">18</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">19</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">20</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">21</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">22</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">23</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">24</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg font-bold border border-primary/20">25</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">26</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">27</button>*/}
+          {/*      <button className="h-8 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-[#283039] rounded-lg">28</button>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
         </div>
       );
     }

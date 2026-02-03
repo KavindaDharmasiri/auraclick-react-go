@@ -127,23 +127,23 @@ const StudioBookings = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
       <Navigation />
       
       <main className="w-full px-0 py-10">
         {/* Page Heading */}
-        <div className="mb-10">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Studio Bookings</h1>
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 mb-10">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-gray-900 dark:text-white">Studio Bookings</h1>
           <p className="text-gray-600 dark:text-slate-400 text-lg max-w-2xl">Reserve high-end photography spaces for your next project. All studios include standard grip and lighting equipment.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Studio Selection & Info */}
           <div className="lg:col-span-8 space-y-12">
             {/* Studio Gallery */}
             <section>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold tracking-tight">Our Studio Spaces</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Our Studio Spaces</h2>
                 <button className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
                   View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
@@ -186,33 +186,33 @@ const StudioBookings = () => {
 
             {/* Pricing Table */}
             <section>
-              <h2 className="text-2xl font-bold tracking-tight mb-6">Pricing & Rates</h2>
-              <div className="overflow-hidden rounded-xl border border-slate-800">
+              <h2 className="text-2xl font-bold tracking-tight mb-6 text-gray-900 dark:text-white">Pricing & Rates</h2>
+              <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-slate-800/50">
+                  <thead className="bg-slate-100 dark:bg-slate-800/50">
                     <tr>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Space</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Hourly Rate</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Half Day (4h)</th>
-                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Full Day (8h)</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">Space</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500 text-center">Hourly Rate</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500 text-center">Half Day (4h)</th>
+                      <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500 text-center">Full Day (8h)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                     {studios.map((studio) => (
                       <tr 
                         key={studio.name}
-                        className={`hover:bg-slate-800/30 transition-colors ${
+                        className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
                           selectedStudio === studio.name ? 'bg-primary/5' : ''
                         }`}
                       >
-                        <td className={`px-6 py-5 ${
+                        <td className={`px-6 py-5 text-gray-900 dark:text-white ${
                           selectedStudio === studio.name ? 'font-bold' : 'font-semibold'
                         }`}>{studio.name}</td>
-                        <td className="px-6 py-5 text-center">${studio.hourly}</td>
+                        <td className="px-6 py-5 text-center text-gray-900 dark:text-white">${studio.hourly}</td>
                         <td className="px-6 py-5 text-center text-primary font-bold">
                           ${studio.halfDay} <span className="text-[10px] text-green-500">Save 15%</span>
                         </td>
-                        <td className="px-6 py-5 text-center">${studio.fullDay}</td>
+                        <td className="px-6 py-5 text-center text-gray-900 dark:text-white">${studio.fullDay}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -222,14 +222,14 @@ const StudioBookings = () => {
 
             {/* Included Equipment */}
             <section>
-              <h2 className="text-2xl font-bold tracking-tight mb-6">Included Equipment</h2>
+              <h2 className="text-2xl font-bold tracking-tight mb-6 text-gray-900 dark:text-white">Included Equipment</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {equipment.map((item) => (
-                  <div key={item.name} className="p-4 rounded-xl bg-slate-800/50 flex flex-col gap-3">
+                  <div key={item.name} className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/50 flex flex-col gap-3">
                     <span className="material-symbols-outlined text-primary">{item.icon}</span>
                     <div>
-                      <p className="text-sm font-bold">{item.name}</p>
-                      <p className="text-xs text-slate-500">{item.description}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{item.name}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-500">{item.description}</p>
                     </div>
                   </div>
                 ))}
@@ -241,19 +241,19 @@ const StudioBookings = () => {
           <div className="lg:col-span-4">
             <div className="sticky top-28 space-y-6">
               {/* Availability Calendar */}
-              <div className="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-800">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-6">
-                  <p className="font-bold">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => navigateMonth(-1)}
-                      className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-700"
+                      className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 text-gray-900 dark:text-white"
                     >
                       <span className="material-symbols-outlined text-sm">chevron_left</span>
                     </button>
                     <button 
                       onClick={() => navigateMonth(1)}
-                      className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-700"
+                      className="size-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 text-gray-900 dark:text-white"
                     >
                       <span className="material-symbols-outlined text-sm">chevron_right</span>
                     </button>
@@ -287,12 +287,12 @@ const StudioBookings = () => {
                   })}
                 </div>
                 <div className="space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">
                     Available Slots ({selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
                   </p>
                   {loading ? (
                     <div className="text-center py-4">
-                      <span className="text-slate-400">Loading...</span>
+                      <span className="text-slate-600 dark:text-slate-400">Loading...</span>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
@@ -305,9 +305,9 @@ const StudioBookings = () => {
                             key={slot.id}
                             onClick={() => isAvailable && handleTimeSlotToggle(slot.id)}
                             className={`py-2 px-3 rounded-lg text-xs font-medium ${
-                              !isAvailable ? 'bg-slate-700 text-slate-400 line-through cursor-not-allowed' :
+                              !isAvailable ? 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 line-through cursor-not-allowed' :
                               isSelected ? 'bg-primary text-white font-bold border border-primary' :
-                              'border border-slate-700 hover:border-primary hover:bg-primary/5'
+                              'border border-slate-300 dark:border-slate-700 hover:border-primary hover:bg-primary/5 text-gray-900 dark:text-white'
                             }`}
                             disabled={!isAvailable}
                           >
