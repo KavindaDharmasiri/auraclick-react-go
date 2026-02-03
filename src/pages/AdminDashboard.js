@@ -432,6 +432,11 @@ const AdminDashboard = () => {
         loadStatuses();
         loadBrands();
       }
+      if (location.pathname === '/admin/settings') {
+        loadCategories();
+        loadStatuses();
+        loadBrands();
+      }
     }
 
     // Close dropdowns when clicking outside
@@ -516,12 +521,14 @@ const AdminDashboard = () => {
 
   const loadCategories = async () => {
     try {
+      console.log('Loading categories...');
       const response = await fetch('http://localhost:5555/api/settings/categories');
       if (response.ok) {
         const data = await response.json();
+        console.log('Loaded categories from API:', data);
         setCategories(data);
       } else {
-        console.error('Failed to load categories:', response.status);
+        console.error('Failed to load categories:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to load categories:', error);
@@ -534,16 +541,30 @@ const AdminDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Loaded statuses from API:', data);
-        setStatuses(data.map(status => status.name));
+        setStatuses(data); // Keep the full objects with id and name
       } else {
         console.error('Failed to load statuses:', response.status);
         // Set default statuses if API fails - including 'Maintain'
-        setStatuses(['In Stock', 'Out on Rent', 'Maintenance', 'Maintain', 'Unavailable', 'Pending']);
+        setStatuses([
+          { id: null, name: 'In Stock' },
+          { id: null, name: 'Out on Rent' },
+          { id: null, name: 'Maintenance' },
+          { id: null, name: 'Maintain' },
+          { id: null, name: 'Unavailable' },
+          { id: null, name: 'Pending' }
+        ]);
       }
     } catch (error) {
       console.error('Failed to load statuses:', error);
       // Set default statuses if API fails - including 'Maintain'
-      setStatuses(['In Stock', 'Out on Rent', 'Maintenance', 'Maintain', 'Unavailable', 'Pending']);
+      setStatuses([
+        { id: null, name: 'In Stock' },
+        { id: null, name: 'Out on Rent' },
+        { id: null, name: 'Maintenance' },
+        { id: null, name: 'Maintain' },
+        { id: null, name: 'Unavailable' },
+        { id: null, name: 'Pending' }
+      ]);
     }
   };
 
@@ -556,30 +577,34 @@ const AdminDashboard = () => {
       });
       if (response.ok) {
         loadCategories();
+        toast.success('Category added successfully!');
         return true;
+      } else {
+        const errorText = await response.text();
+        toast.error(errorText || 'Failed to add category');
+        return false;
       }
-      return false;
     } catch (error) {
+      console.error('Error adding category:', error);
+      toast.error('Failed to add category');
       return false;
     }
   };
 
-  const deleteCategory = async (index) => {
+  const deleteCategory = async (categoryId) => {
     try {
-      const response = await fetch('http://localhost:5555/api/settings/categories');
-      const data = await response.json();
-      const categoryId = data[index]?.id;
-      
-      if (categoryId) {
-        const deleteResponse = await fetch(`http://localhost:5555/api/settings/categories/${categoryId}`, {
-          method: 'DELETE'
-        });
-        if (deleteResponse.ok) {
-          loadCategories();
-        }
+      const deleteResponse = await fetch(`http://localhost:5555/api/settings/categories/${categoryId}`, {
+        method: 'DELETE'
+      });
+      if (deleteResponse.ok) {
+        loadCategories();
+        toast.success('Category deleted successfully!');
+      } else {
+        toast.error('Failed to delete category');
       }
     } catch (error) {
-      console.error('Failed to delete category');
+      console.error('Failed to delete category:', error);
+      toast.error('Failed to delete category');
     }
   };
 
@@ -592,44 +617,52 @@ const AdminDashboard = () => {
       });
       if (response.ok) {
         loadStatuses();
+        toast.success('Status added successfully!');
         return true;
+      } else {
+        const errorText = await response.text();
+        toast.error(errorText || 'Failed to add status');
+        return false;
       }
-      return false;
     } catch (error) {
+      console.error('Error adding status:', error);
+      toast.error('Failed to add status');
       return false;
     }
   };
 
-  const deleteStatus = async (index) => {
+  const deleteStatus = async (statusId) => {
     try {
-      const response = await fetch('http://localhost:5555/api/settings/statuses');
-      const data = await response.json();
-      const statusId = data[index]?.id;
-      
-      if (statusId) {
-        const deleteResponse = await fetch(`http://localhost:5555/api/settings/statuses/${statusId}`, {
-          method: 'DELETE'
-        });
-        if (deleteResponse.ok) {
-          loadStatuses();
-        }
+      const deleteResponse = await fetch(`http://localhost:5555/api/settings/statuses/${statusId}`, {
+        method: 'DELETE'
+      });
+      if (deleteResponse.ok) {
+        loadStatuses();
+        toast.success('Status deleted successfully!');
+      } else {
+        toast.error('Failed to delete status');
       }
     } catch (error) {
-      console.error('Failed to delete status');
+      console.error('Failed to delete status:', error);
+      toast.error('Failed to delete status');
     }
   };
 
   const loadBrands = async () => {
     try {
+      console.log('Loading brands...');
       const response = await fetch('http://localhost:5555/api/settings/brands');
       if (response.ok) {
         const data = await response.json();
+        console.log('Loaded brands from API:', data);
         const brandsWithCategory = data.map(brand => ({
           id: brand.id,
           name: brand.name,
           categoryName: brand.category?.name || 'Unknown'
         }));
         setBrands(brandsWithCategory);
+      } else {
+        console.error('Failed to load brands:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to load brands:', error);
@@ -1901,7 +1934,7 @@ const AdminDashboard = () => {
                       required
                     >
                       {statuses.map((status, index) => (
-                        <option key={index} value={status.name || status}>{status.name || status}</option>
+                        <option key={status.id || index} value={status.name || status}>{status.name || status}</option>
                       ))}
                     </select>
                   </div>
@@ -2047,17 +2080,17 @@ const AdminDashboard = () => {
               </div>
               <div className="space-y-3">
                 {statuses.map((status, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
+                  <div key={status.id || index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#232036] rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`size-3 rounded-full ${
-                        status === 'In Stock' ? 'bg-emerald-500' :
-                        status === 'Out on Rent' ? 'bg-orange-500' :
-                        status === 'Maintenance' ? 'bg-red-500' : 'bg-slate-500'
+                        (status.name || status) === 'In Stock' ? 'bg-emerald-500' :
+                        (status.name || status) === 'Out on Rent' ? 'bg-orange-500' :
+                        (status.name || status) === 'Maintenance' ? 'bg-red-500' : 'bg-slate-500'
                       }`}></div>
-                      <span className="font-medium dark:text-white">{status}</span>
+                      <span className="font-medium dark:text-white">{status.name || status}</span>
                     </div>
                     <button 
-                      onClick={() => deleteStatus(index)}
+                      onClick={() => deleteStatus(status.id || index)}
                       className="text-red-500 hover:text-red-700 p-1"
                     >
                       <span className="material-symbols-outlined text-sm">delete</span>
@@ -2507,23 +2540,23 @@ const AdminDashboard = () => {
           >
             All Statuses
           </button>
-          {statuses.map((status, index) => (
-            <button 
-              key={index}
-              className={`w-full px-4 py-2 text-left text-sm last:rounded-b-xl ${
-                isDark 
-                  ? 'hover:bg-slate-700' 
-                  : 'hover:bg-slate-100'
-              }`}
-              onClick={() => {
-                setSelectedStatus(status);
-                loadGear(0, searchTerm, selectedCategory, status);
-                setShowStatusDropdown(false);
-              }}
-            >
-              {status}
-            </button>
-          ))}
+            {statuses.map((status, index) => (
+              <button
+                key={status.id || index}
+                className={`w-full px-4 py-2 text-left text-sm last:rounded-b-xl ${
+                  isDark 
+                    ? 'hover:bg-slate-700' 
+                    : 'hover:bg-slate-100'
+                }`}
+                onClick={() => {
+                  setSelectedStatus(status.name || status);
+                  loadGear(0, searchTerm, selectedCategory, status.name || status);
+                  setShowStatusDropdown(false);
+                }}
+              >
+                {status.name || status}
+              </button>
+            ))}
         </div>,
         document.body
       )}

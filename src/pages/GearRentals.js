@@ -18,7 +18,7 @@ const GearRentals = () => {
   const [showMoreCategories, setShowMoreCategories] = useState(false);
   const [showBrands, setShowBrands] = useState(true);
   const [showPriceRange, setShowPriceRange] = useState(false);
-  const [priceRange, setPriceRange] = useState([50, 300]);
+  const [priceRange, setPriceRange] = useState([50, 1000]);
   const visibleCategories = categories.slice(0, 4);
   const hiddenCategories = categories.slice(4);
 
@@ -43,24 +43,23 @@ const GearRentals = () => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        size: '9',
-        status: 'In Stock'
+        size: '9'
       });
-      console.log("Selecting gear with params:", { category, brands, priceMin, priceMax, page });
+      console.log("Filtering gear with params:", { category, brands, priceMin, priceMax, page });
       
       if (category) params.append('category', category);
       if (brands.length > 0) {
         brands.forEach(brand => params.append('brands', brand));
       }
       if (priceMin > 50) params.append('minPrice', priceMin);
-      if (priceMax < 500) params.append('maxPrice', priceMax);
+      if (priceMax < 1000) params.append('maxPrice', priceMax);
       
-      const endpoint = category || brands.length > 0 || priceMin > 50 || priceMax < 500 
-        ? `http://localhost:5555/api/gear/filter?${params}`
-        : `http://localhost:5555/api/gear?${params}`;
+      const endpoint = `http://localhost:5555/api/gear/filter?${params}`;
+      console.log('Filter endpoint:', endpoint);
       
       const response = await fetch(endpoint);
       const data = await response.json();
+      console.log('Filter response:', data);
       setGearItems(data.content || data);
       setTotalPages(data.totalPages || 1);
       setCurrentPage(data.currentPage || page);
@@ -76,7 +75,8 @@ const GearRentals = () => {
       return;
     }
     console.log('Filtering brands for category:', selectedCategory);
-    if (selectedCategory) {
+    if (!selectedCategory) {
+      // Show all brands when no category is selected
       setBrands(allBrands.map(brand => brand.name));
       return;
     }
@@ -99,25 +99,27 @@ const GearRentals = () => {
 
       if (categoriesRes.ok) {
         const categoriesData = await categoriesRes.json();
+        console.log('Categories loaded:', categoriesData);
         setCategories(categoriesData.map(cat => cat.name));
       }
 
       if (brandsRes.ok) {
         const brandsData = await brandsRes.json();
-        console.log('Brands data:', brandsData); // Debug log
-        setAllBrands(brandsData); // Store all brands with category info
+        console.log('Brands loaded:', brandsData);
+        setAllBrands(brandsData);
       }
 
       if (gearRes.ok) {
         const gearData = await gearRes.json();
-        // Don't set gear items here, let filterGear handle it
+        console.log('Initial gear data:', gearData);
+        // Set initial gear data to see if there's any gear at all
+        setGearItems(gearData.content || gearData);
+        setTotalPages(gearData.totalPages || 1);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
-      // Load filtered gear after data is loaded
-      filterGear('', [], 50, 500, 0);
     }
   };
 
@@ -276,8 +278,8 @@ const GearRentals = () => {
                           <div 
                             className="absolute h-2 bg-primary rounded-full"
                             style={{
-                              left: `${((priceRange[0] - 50) / (500 - 50)) * 100}%`,
-                              right: `${100 - ((priceRange[1] - 50) / (500 - 50)) * 100}%`
+                              left: `${((priceRange[0] - 50) / (1000 - 50)) * 100}%`,
+                              right: `${100 - ((priceRange[1] - 50) / (1000 - 50)) * 100}%`
                             }}
                           />
                         </div>
@@ -285,13 +287,14 @@ const GearRentals = () => {
                           <input 
                             type="range" 
                             min="50" 
-                            max="500" 
+                            max="1000" 
                             value={priceRange[0]} 
                             onChange={(e) => {
                               const val = parseInt(e.target.value);
                               if (val <= priceRange[1] - 10) {
-                                setPriceRange([val, priceRange[1]]);
-                                filterGear();
+                                const newRange = [val, priceRange[1]];
+                                setPriceRange(newRange);
+                                filterGear(selectedCategory, selectedBrands, newRange[0], newRange[1]);
                               }
                             }}
                             className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer range-thumb"
@@ -299,13 +302,14 @@ const GearRentals = () => {
                           <input 
                             type="range" 
                             min="50" 
-                            max="500" 
+                            max="1000" 
                             value={priceRange[1]} 
                             onChange={(e) => {
                               const val = parseInt(e.target.value);
                               if (val >= priceRange[0] + 10) {
-                                setPriceRange([priceRange[0], val]);
-                                filterGear();
+                                const newRange = [priceRange[0], val];
+                                setPriceRange(newRange);
+                                filterGear(selectedCategory, selectedBrands, newRange[0], newRange[1]);
                               }
                             }}
                             className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer range-thumb"
@@ -325,8 +329,8 @@ const GearRentals = () => {
                 onClick={() => {
                   setSelectedCategory('');
                   setSelectedBrands([]);
-                  setPriceRange([50, 500]);
-                  filterGear('', [], 50, 500, 0);
+                  setPriceRange([50, 1000]);
+                  filterGear('', [], 50, 1000, 0);
                 }}
                 className="w-full mt-4 flex items-center justify-center overflow-hidden rounded-xl h-11 px-4 bg-slate-200 dark:bg-[#2b2839] text-slate-900 dark:text-white text-sm font-bold hover:bg-slate-300 dark:hover:bg-[#3f3b54] transition-colors"
               >
