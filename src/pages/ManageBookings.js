@@ -1,13 +1,90 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const ManageBookings = () => {
-  const bookings = [
-    { id: 1, client: 'Emma Thompson', service: 'Outdoor Portrait', date: 'Oct 28, 2023', time: '10:00 AM', status: 'confirmed', payment: 'paid' },
-    { id: 2, client: 'David Chen', service: 'Studio Session', date: 'Oct 30, 2023', time: '2:00 PM', status: 'pending', payment: 'partial' },
-    { id: 3, client: 'The Millers', service: 'Wedding Package', date: 'Nov 04, 2023', time: '12:00 PM', status: 'confirmed', payment: 'paid' },
-    { id: 4, client: 'Marcus James', service: 'Street Photography', date: 'Oct 25, 2023', time: '4:30 PM', status: 'completed', payment: 'paid' }
-  ];
+  const [metrics, setMetrics] = useState({
+    totalBookings: 0,
+    pendingBookings: 0,
+    revenue: 0,
+    totalBookingsChange: '+0%',
+    pendingBookingsChange: '+0%',
+    revenueChange: '+0%'
+  });
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    bookingType: 'PHO',
+    fromDate: '2026-01-01',
+    toDate: '2026-12-31',
+    bookingStatus: 'PENDING',
+    pageNumber: 0,
+    pageSize: 10
+  });
+
+  const fetchMetrics = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/admin/metrics');
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        setMetrics(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/admin/getBookingTable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(filters)
+      });
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        setBookings(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    }
+    setLoading(false);
+  };
+
+  const updateBookingStatus = async (bookingId, bookingStatus, paymentStatus) => {
+    try {
+      const response = await fetch('http://localhost:5555/api/bookings/admin/updateStatuses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId,
+          bookingStatus,
+          paymentStatus
+        })
+      });
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        fetchBookings(); // Refresh bookings
+        fetchMetrics(); // Refresh metrics
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetrics();
+    fetchBookings();
+  }, [filters]);
+
+  const handleStatusChange = (bookingId, currentBookingStatus, currentPaymentStatus, type, newValue) => {
+    const bookingStatus = type === 'booking' ? newValue : currentBookingStatus;
+    const paymentStatus = type === 'payment' ? newValue : currentPaymentStatus;
+    updateBookingStatus(bookingId, bookingStatus, paymentStatus);
+  };
 
   return (
     <div className="p-8">
@@ -27,22 +104,28 @@ const ManageBookings = () => {
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
           <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Total Bookings (Month)</h3>
           <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold">128</span>
-            <span className="text-green-400 text-sm">+12%</span>
+            <span className="text-3xl font-bold">{metrics.totalBookings}</span>
+            <span className={`text-sm ${
+              metrics.totalBookingsChange.startsWith('+') ? 'text-green-400' : 'text-red-400'
+            }`}>{metrics.totalBookingsChange}</span>
           </div>
         </div>
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
           <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Pending Confirmations</h3>
           <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold">14</span>
-            <span className="text-red-400 text-sm">-5%</span>
+            <span className="text-3xl font-bold">{metrics.pendingBookings}</span>
+            <span className={`text-sm ${
+              metrics.pendingBookingsChange.startsWith('+') ? 'text-green-400' : 'text-red-400'
+            }`}>{metrics.pendingBookingsChange}</span>
           </div>
         </div>
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
           <h3 className="text-sm text-gray-600 dark:text-slate-400 mb-2">Monthly Revenue</h3>
           <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold">$12,450</span>
-            <span className="text-green-400 text-sm">+8%</span>
+            <span className="text-3xl font-bold">${metrics.revenue}</span>
+            <span className={`text-sm ${
+              metrics.revenueChange.startsWith('+') ? 'text-green-400' : 'text-red-400'
+            }`}>{metrics.revenueChange}</span>
           </div>
         </div>
       </div>
@@ -61,47 +144,81 @@ const ManageBookings = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
-            {bookings.map((booking) => (
-              <tr key={booking.id} className="hover:bg-slate-700/50">
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="font-semibold">{booking.date}</div>
-                    <div className="text-sm text-gray-600 dark:text-slate-400">{booking.time}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 font-medium">{booking.client}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">camera</span>
-                    {booking.service}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    booking.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
-                    booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {booking.status.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`material-symbols-outlined ${
-                      booking.payment === 'paid' ? 'text-green-400' : 'text-yellow-400'
-                    }`}>
-                      {booking.payment === 'paid' ? 'check_circle' : 'error'}
-                    </span>
-                    {booking.payment === 'paid' ? 'Paid' : 'Partial'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg font-semibold">
-                    Edit
-                  </button>
+            {loading ? (
+              <tr>
+                <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
+                  Loading bookings...
                 </td>
               </tr>
-            ))}
+            ) : bookings.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
+                  No bookings found
+                </td>
+              </tr>
+            ) : (
+              bookings.map((booking) => (
+                <tr key={booking.bookingId} className="hover:bg-slate-700/50">
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className="font-semibold">{new Date(booking.bookingDate).toLocaleDateString()}</div>
+                      <div className="text-sm text-gray-600 dark:text-slate-400">{booking.duration}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 font-medium">{booking.customerName}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">camera</span>
+                      {booking.service}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={booking.bookingStatus}
+                      onChange={(e) => handleStatusChange(
+                        booking.bookingId,
+                        booking.bookingStatus,
+                        booking.paymentStatus,
+                        'booking',
+                        e.target.value
+                      )}
+                      className={`px-3 py-1 rounded-full text-xs font-bold border-none outline-none cursor-pointer ${
+                        booking.bookingStatus === 'CONFIRMED' ? 'bg-green-500/20 text-green-400' :
+                        booking.bookingStatus === 'PENDING' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}
+                    >
+                      <option value="PENDING">PENDING</option>
+                      <option value="CONFIRMED">CONFIRMED</option>
+                      <option value="COMPLETED">COMPLETED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={booking.paymentStatus}
+                      onChange={(e) => handleStatusChange(
+                        booking.bookingId,
+                        booking.bookingStatus,
+                        booking.paymentStatus,
+                        'payment',
+                        e.target.value
+                      )}
+                      className="flex items-center gap-2 bg-transparent border-none outline-none cursor-pointer"
+                    >
+                      <option value="Paid">Paid</option>
+                      <option value="Partial">Partial</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg font-semibold">
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

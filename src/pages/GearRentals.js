@@ -5,7 +5,7 @@ import '../rangeSlider.css';
 
 const GearRentals = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [cartCount, setCartCount] = useState(2);
   const [categories, setCategories] = useState([]);
@@ -35,6 +35,7 @@ const GearRentals = () => {
   }, []);
 
   useEffect(() => {
+    console.log("Selected category changed to:", selectedCategory);
     filterBrandsByCategory();
   }, [selectedCategory, allBrands]);
 
@@ -45,6 +46,7 @@ const GearRentals = () => {
         size: '9',
         status: 'In Stock'
       });
+      console.log("Selecting gear with params:", { category, brands, priceMin, priceMax, page });
       
       if (category) params.append('category', category);
       if (brands.length > 0) {
@@ -69,11 +71,12 @@ const GearRentals = () => {
 
   const filterBrandsByCategory = () => {
     if (!allBrands.length) {
+      console.log('No brands data available to filter.');
       setBrands([]);
       return;
     }
-    
-    if (!selectedCategory) {
+    console.log('Filtering brands for category:', selectedCategory);
+    if (selectedCategory) {
       setBrands(allBrands.map(brand => brand.name));
       return;
     }
@@ -173,7 +176,9 @@ const GearRentals = () => {
               <div 
                 key={category}
                 onClick={() => {
+                  console.log("Selected category:", category);
                   setSelectedCategory(category);
+                  console.log("Filtering gear for category:", selectedCategory);
                   filterGear(category, selectedBrands, priceRange[0], priceRange[1]);
                 }}
                 className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl px-6 cursor-pointer transition-colors ${

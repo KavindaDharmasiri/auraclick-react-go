@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
+import PaymentPopup from '../components/PaymentPopup';
 
 const PhotoshootBookings = () => {
-  const [selectedDate, setSelectedDate] = useState(3);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [aiPrompt, setAiPrompt] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('Urban Techwear');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedService, setSelectedService] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState('H2');
+  const [selectedLocation, setSelectedLocation] = useState('STUDIO');
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [loading, setLoading] = useState(false);
 
   const themes = [
     { name: 'Ethereal Forest', icon: 'forest' },
@@ -22,6 +30,8 @@ const PhotoshootBookings = () => {
 
   const services = [
     {
+      service: 'SS',
+      subService: 'PORTRAIT',
       title: 'Portrait Session',
       price: '$250',
       duration: '2 Hours',
@@ -29,24 +39,106 @@ const PhotoshootBookings = () => {
       popular: true
     },
     {
+      service: 'OS',
+      subService: 'NATURE',
+      title: 'Outdoor Nature',
+      price: '$300',
+      duration: '3 Hours',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOHWEiM_vgYuIFje690wUSQ9eCUrwHzcFVnBhEyYTcwQD0QSUFfw7tfFHsaVEau_mvBoryGqj8RA7AQURfHIkDn_q2PKdTG9fgiofFHNfVhAINwUNaKKjie1TIakrnhBColYEPTmgF725eqOaUuKtqdFDb6yMupS0lGxlB0AmDa4jaInPnTAMehMDzjOw7CX2FGB5FeO92UO0_J4zufNWfsP8192eObgPUJSCAN0QF_r80L4GgL3E_6C7crxstf6TaDSr2Fe0cJ6iv'
+    },
+    {
+      service: 'COM',
+      subService: 'PRODUCT',
       title: 'Commercial Shoot',
       price: '$1,200',
       duration: 'Full Day',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOHWEiM_vgYuIFje690wUSQ9eCUrwHzcFVnBhEyYTcwQD0QSUFfw7tfFHsaVEau_mvBoryGqj8RA7AQURfHIkDn_q2PKdTG9fgiofFHNfVhAINwUNaKKjie1TIakrnhBColYEPTmgF725eqOaUuKtqdFDb6yMupS0lGxlB0AmDa4jaInPnTAMehMDzjOw7CX2FGB5FeO92UO0_J4zufNWfsP8192eObgPUJSCAN0QF_r80L4GgL3E_6C7crxstf6TaDSr2Fe0cJ6iv'
     },
     {
+      service: 'EVT',
+      subService: 'WEDDING',
       title: 'Event Coverage',
       price: '$800',
       duration: '4 Hours+',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBd7kxQWhJFjo8u2slz51rrPhAEITaGGwScedcWfASj4yQLo1ms8fNLB1pgkViXh_QCxNpnd6rjokeYLJwbSa961lxL_s-1hueyq82M4OTzvVQGeiLKS-xs19yG8BQfPT9S7JUNjqT83uLYWTei0PBdxHha5HnhlFmLJ6JKMRRtOwaKCkQrvtdH66OOSfCIb5sPmprnQL8xuEodIIWDZS91O6ktx7cOfUJUbpmLQLT1ByHtzgYiZ4C5ZuOCeNUpJOK8VPOCZDQXSzq'
     },
     {
+      service: 'SS',
+      subService: 'FASHION',
       title: 'Fashion Editorial',
       price: '$1,500',
       duration: 'Half Day',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFk0cxrhG5faQUg5dg8tYIsPACMOqW9MCc37n5VfA8DkcBK4vL9L2NEyvYs-31pLQmKkKBc9-spHkwamdLyn9qrhT-bt17dff4VSE6She0z7bY_VHXUWdJDZY4-yrTOyRdRkATmkvaVYOg407tTdS_xla2sbHIJUPdLryHzP2WvdrZephy4G2JMNmD-otwtSk4nEXPmG2qJeyDTrEMAhbawQGVHCaYngjxDsRT-ipcbpEzph6-c9ULJ_nipET7s0hHTr4tS7Ow4XFw'
     }
   ];
+
+  const durations = [
+    { key: 'H2', value: '2 Hours (Standard)' },
+    { key: 'H4', value: '4 Hours (Half Day)' },
+    { key: 'H8', value: '8 Hours (Full Day)' }
+  ];
+
+  const categories = [
+    { key: 'ALL', label: 'All Services' },
+    { key: 'SS', label: 'Studio Sessions' },
+    { key: 'OS', label: 'Outdoor Shoots' },
+    { key: 'COM', label: 'Commercial' },
+    { key: 'EVT', label: 'Events' }
+  ];
+
+  const filteredServices = selectedCategory === 'ALL' 
+    ? services 
+    : services.filter(service => service.service === selectedCategory);
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    return days;
+  };
+
+  const handleDateClick = (date) => {
+    if (date && date >= new Date().setHours(0,0,0,0)) {
+      setSelectedDate(date);
+    }
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev);
+      newMonth.setMonth(prev.getMonth() + direction);
+      return newMonth;
+    });
+  };
+
+  const handleServiceSelect = (service) => {
+    setSelectedService(service);
+  };
+
+  const handlePayment = () => {
+    if (!selectedService) {
+      alert('Please select a service first');
+      return;
+    }
+    setShowPaymentPopup(true);
+  };
+
+  const getServicePrice = () => {
+    if (!selectedService) return 250;
+    const priceStr = selectedService.price.replace('$', '').replace(',', '');
+    return parseInt(priceStr);
+  };
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-900 dark:text-white min-h-screen">
@@ -148,17 +240,31 @@ const PhotoshootBookings = () => {
 
             {/* Service Categories */}
             <div className="flex gap-3 overflow-x-auto pb-2">
-              <button className="px-5 py-2 rounded-full bg-primary text-gray-900 dark:text-white text-sm font-semibold whitespace-nowrap">All Services</button>
-              <button className="px-5 py-2 rounded-full bg-gray-200 dark:bg-[#2b2839] text-gray-700 dark:text-slate-300 text-sm font-semibold whitespace-nowrap hover:bg-primary/10 transition-colors">Studio Sessions</button>
-              <button className="px-5 py-2 rounded-full bg-gray-200 dark:bg-[#2b2839] text-gray-700 dark:text-slate-300 text-sm font-semibold whitespace-nowrap hover:bg-primary/10 transition-colors">Outdoor Shoots</button>
-              <button className="px-5 py-2 rounded-full bg-gray-200 dark:bg-[#2b2839] text-gray-700 dark:text-slate-300 text-sm font-semibold whitespace-nowrap hover:bg-primary/10 transition-colors">Commercial</button>
-              <button className="px-5 py-2 rounded-full bg-gray-200 dark:bg-[#2b2839] text-gray-700 dark:text-slate-300 text-sm font-semibold whitespace-nowrap hover:bg-primary/10 transition-colors">Events</button>
+              {categories.map((category) => (
+                <button 
+                  key={category.key}
+                  onClick={() => setSelectedCategory(category.key)}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                    selectedCategory === category.key
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-200 dark:bg-[#2b2839] text-gray-700 dark:text-slate-300 hover:bg-primary/10'
+                  }`}
+                >
+                  {category.label}
+                </button>
+              ))}
             </div>
 
             {/* Services Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {services.map((service, index) => (
-                <div key={index} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-200 dark:bg-[#2b2839]">
+              {filteredServices.map((service, index) => (
+                <div 
+                  key={index} 
+                  className={`group relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-200 dark:bg-[#2b2839] cursor-pointer ${
+                    selectedService?.title === service.title ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => handleServiceSelect(service)}
+                >
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" 
                     style={{
@@ -171,7 +277,7 @@ const PhotoshootBookings = () => {
                         {service.popular && (
                           <span className="inline-block px-3 py-1 bg-primary text-[10px] font-bold uppercase tracking-widest rounded-full mb-3">Popular</span>
                         )}
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{service.title}</h3>
+                        <h3 className="text-2xl font-bold text-white mb-1">{service.title}</h3>
                         <p className="text-slate-300 text-sm mb-4">Starting at {service.price} • {service.duration}</p>
                       </div>
                       <button className="size-12 rounded-xl bg-white text-primary flex items-center justify-center shadow-xl translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
@@ -179,6 +285,11 @@ const PhotoshootBookings = () => {
                       </button>
                     </div>
                   </div>
+                  {selectedService?.title === service.title && (
+                    <div className="absolute top-4 right-4 bg-primary size-6 rounded-full flex items-center justify-center text-white">
+                      <span className="material-symbols-outlined text-sm">check</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -205,29 +316,55 @@ const PhotoshootBookings = () => {
               <form className="space-y-6">
                 {/* Calendar */}
                 <div className="space-y-4">
-                  <label className="text-sm font-bold block text-gray-900 dark:text-gray-900 dark:text-white">Select Your Date</label>
+                  <label className="text-sm font-bold block text-gray-900 dark:text-white">Select Your Date</label>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="font-bold text-sm">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                    <div className="flex gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => navigateMonth(-1)}
+                        className="size-6 rounded flex items-center justify-center hover:bg-gray-200 dark:hover:bg-[#2b2839]"
+                      >
+                        <span className="material-symbols-outlined text-sm">chevron_left</span>
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => navigateMonth(1)}
+                        className="size-6 rounded flex items-center justify-center hover:bg-gray-200 dark:hover:bg-[#2b2839]"
+                      >
+                        <span className="material-symbols-outlined text-sm">chevron_right</span>
+                      </button>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium border-b border-gray-200 dark:border-[#2b2839] pb-2">
-                    {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(day => (
-                      <span key={day} className="text-gray-500 dark:text-gray-600 dark:text-slate-400">{day}</span>
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                      <span key={`day-${index}`} className="text-gray-500 dark:text-slate-400">{day}</span>
                     ))}
                   </div>
                   <div className="grid grid-cols-7 gap-2">
-                    {[28, 29, 30, 1, 2, 3, 4, 5, 6, 7].map((date, index) => (
-                      <button 
-                        key={date}
-                        type="button"
-                        onClick={() => setSelectedDate(date)}
-                        className={`aspect-square flex items-center justify-center rounded-lg transition-colors ${
-                          date < 1 
-                            ? 'text-gray-400 dark:text-gray-600 dark:text-slate-400 cursor-not-allowed' 
-                            : selectedDate === date
-                              ? 'bg-primary text-gray-900 dark:text-white font-bold'
-                              : 'hover:bg-primary/10 text-gray-900 dark:text-gray-900 dark:text-white'
-                        }`}
-                      >
-                        {date}
-                      </button>
-                    ))}
+                    {getDaysInMonth(currentMonth).map((date, index) => {
+                      const isToday = date && date.toDateString() === new Date().toDateString();
+                      const isSelected = date && date.toDateString() === selectedDate.toDateString();
+                      const isPast = date && date < new Date().setHours(0,0,0,0);
+                      
+                      return (
+                        <button 
+                          key={index}
+                          type="button"
+                          onClick={() => handleDateClick(date)}
+                          disabled={!date || isPast}
+                          className={`aspect-square flex items-center justify-center rounded-lg transition-colors text-xs ${
+                            !date ? 'invisible' :
+                            isPast ? 'text-gray-400 dark:text-slate-400 cursor-not-allowed' :
+                            isSelected ? 'bg-primary text-white font-bold' :
+                            isToday ? 'bg-primary/20 text-primary font-bold' :
+                            'hover:bg-primary/10 text-gray-900 dark:text-white'
+                          }`}
+                        >
+                          {date?.getDate()}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -242,20 +379,44 @@ const PhotoshootBookings = () => {
 
                 {/* Duration */}
                 <div>
-                  <label className="text-sm font-bold block mb-2 text-gray-900 dark:text-gray-900 dark:text-white">Duration</label>
-                  <select className="w-full h-12 rounded-xl bg-gray-100 dark:bg-[#2b2839] border-none text-sm focus:ring-2 focus:ring-primary text-gray-900 dark:text-gray-900 dark:text-white">
-                    <option>2 Hours (Standard)</option>
-                    <option>4 Hours (Half Day)</option>
-                    <option>8 Hours (Full Day)</option>
+                  <label className="text-sm font-bold block mb-2 text-gray-900 dark:text-white">Duration</label>
+                  <select 
+                    value={selectedDuration}
+                    onChange={(e) => setSelectedDuration(e.target.value)}
+                    className="w-full h-12 rounded-xl bg-gray-100 dark:bg-[#2b2839] border-none text-sm focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+                  >
+                    {durations.map((duration) => (
+                      <option key={duration.key} value={duration.key}>{duration.value}</option>
+                    ))}
                   </select>
                 </div>
 
                 {/* Location */}
                 <div>
-                  <label className="text-sm font-bold block mb-2 text-gray-900 dark:text-gray-900 dark:text-white">Location Preference</label>
+                  <label className="text-sm font-bold block mb-2 text-gray-900 dark:text-white">Location Preference</label>
                   <div className="flex gap-2">
-                    <button className="flex-1 py-3 rounded-xl border border-primary bg-primary/5 text-primary text-xs font-bold transition-all" type="button">Studio</button>
-                    <button className="flex-1 py-3 rounded-xl border border-gray-300 dark:border-[#2b2839] text-xs font-bold transition-all hover:bg-gray-100 dark:hover:bg-[#2b2839] text-gray-900 dark:text-gray-900 dark:text-white" type="button">On-Site</button>
+                    <button 
+                      type="button"
+                      onClick={() => setSelectedLocation('STUDIO')}
+                      className={`flex-1 py-3 rounded-xl border text-xs font-bold transition-all ${
+                        selectedLocation === 'STUDIO'
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-gray-300 dark:border-[#2b2839] hover:bg-gray-100 dark:hover:bg-[#2b2839] text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      Studio
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setSelectedLocation('ONSITE')}
+                      className={`flex-1 py-3 rounded-xl border text-xs font-bold transition-all ${
+                        selectedLocation === 'ONSITE'
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-gray-300 dark:border-[#2b2839] hover:bg-gray-100 dark:hover:bg-[#2b2839] text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      On-Site
+                    </button>
                   </div>
                 </div>
 
@@ -263,9 +424,13 @@ const PhotoshootBookings = () => {
                 <div className="pt-4 border-t border-gray-200 dark:border-[#2b2839]">
                   <div className="flex justify-between items-center mb-6">
                     <span className="text-gray-500 dark:text-gray-600 dark:text-slate-400">Total Estimate</span>
-                    <span className="text-2xl font-black text-gray-900 dark:text-gray-900 dark:text-white">$250.00</span>
+                    <span className="text-2xl font-black text-gray-900 dark:text-gray-900 dark:text-white">${getServicePrice()}.00</span>
                   </div>
-                  <button className="w-full bg-primary hover:bg-primary/90 text-gray-900 dark:text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 group transition-all" type="button">
+                  <button 
+                    onClick={handlePayment}
+                    className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 group transition-all" 
+                    type="button"
+                  >
                     <span>Continue to Payment</span>
                     <span className="material-symbols-outlined transition-transform group-hover:translate-x-1">chevron_right</span>
                   </button>
@@ -302,6 +467,22 @@ const PhotoshootBookings = () => {
           </div>
         </div>
       </footer>
+      
+      <PaymentPopup 
+        isOpen={showPaymentPopup}
+        onClose={() => setShowPaymentPopup(false)}
+        bookingDetails={{
+          service: selectedService?.title || 'Service',
+          serviceType: selectedService?.service || 'SS',
+          subService: selectedService?.subService || 'PORTRAIT',
+          duration: durations.find(d => d.key === selectedDuration)?.value || '2 Hours (Standard)',
+          durationKey: selectedDuration,
+          date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`,
+          location: selectedLocation,
+          total: getServicePrice()
+        }}
+        isPhotoshoot={true}
+      />
     </div>
   );
 };
