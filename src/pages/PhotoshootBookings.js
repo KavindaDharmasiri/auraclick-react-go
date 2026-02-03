@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import PaymentPopup from '../components/PaymentPopup';
+import toast from "react-hot-toast";
 
 const PhotoshootBookings = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -33,7 +34,7 @@ const PhotoshootBookings = () => {
       service: 'SS',
       subService: 'PORTRAIT',
       title: 'Portrait Session',
-      price: '$250',
+      price: '250',
       duration: '2 Hours',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuATpBFel0J0-gMpMrSicrFrtaEjpRGmxkDelZymk2UXfFtuPHUnqJEqNnhksHMNpRY0fF_fMLUew00-PcaFntVs7RRbyV7asbMiyhF_e8nRhAveLoNfdzpp-ImXIkl98jvVghtqEDDuT2kPdgN2sh3zds9srSvpAGDRp5Lh9DDcwSZnA4_ix8dtgxd0m59_DrWsbaO2zXpsKIAMSpAfbnrp7DDK5VkAjbBzl2usMFjwAO3WDuwk2aQyhFqNlSe_chcTzlkSEh6VLPdm',
       popular: true
@@ -42,7 +43,7 @@ const PhotoshootBookings = () => {
       service: 'OS',
       subService: 'NATURE',
       title: 'Outdoor Nature',
-      price: '$300',
+      price: '300',
       duration: '3 Hours',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOHWEiM_vgYuIFje690wUSQ9eCUrwHzcFVnBhEyYTcwQD0QSUFfw7tfFHsaVEau_mvBoryGqj8RA7AQURfHIkDn_q2PKdTG9fgiofFHNfVhAINwUNaKKjie1TIakrnhBColYEPTmgF725eqOaUuKtqdFDb6yMupS0lGxlB0AmDa4jaInPnTAMehMDzjOw7CX2FGB5FeO92UO0_J4zufNWfsP8192eObgPUJSCAN0QF_r80L4GgL3E_6C7crxstf6TaDSr2Fe0cJ6iv'
     },
@@ -50,7 +51,7 @@ const PhotoshootBookings = () => {
       service: 'COM',
       subService: 'PRODUCT',
       title: 'Commercial Shoot',
-      price: '$1,200',
+      price: '1,200',
       duration: 'Full Day',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOHWEiM_vgYuIFje690wUSQ9eCUrwHzcFVnBhEyYTcwQD0QSUFfw7tfFHsaVEau_mvBoryGqj8RA7AQURfHIkDn_q2PKdTG9fgiofFHNfVhAINwUNaKKjie1TIakrnhBColYEPTmgF725eqOaUuKtqdFDb6yMupS0lGxlB0AmDa4jaInPnTAMehMDzjOw7CX2FGB5FeO92UO0_J4zufNWfsP8192eObgPUJSCAN0QF_r80L4GgL3E_6C7crxstf6TaDSr2Fe0cJ6iv'
     },
@@ -58,7 +59,7 @@ const PhotoshootBookings = () => {
       service: 'EVT',
       subService: 'WEDDING',
       title: 'Event Coverage',
-      price: '$800',
+      price: '800',
       duration: '4 Hours+',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBd7kxQWhJFjo8u2slz51rrPhAEITaGGwScedcWfASj4yQLo1ms8fNLB1pgkViXh_QCxNpnd6rjokeYLJwbSa961lxL_s-1hueyq82M4OTzvVQGeiLKS-xs19yG8BQfPT9S7JUNjqT83uLYWTei0PBdxHha5HnhlFmLJ6JKMRRtOwaKCkQrvtdH66OOSfCIb5sPmprnQL8xuEodIIWDZS91O6ktx7cOfUJUbpmLQLT1ByHtzgYiZ4C5ZuOCeNUpJOK8VPOCZDQXSzq'
     },
@@ -66,7 +67,7 @@ const PhotoshootBookings = () => {
       service: 'SS',
       subService: 'FASHION',
       title: 'Fashion Editorial',
-      price: '$1,500',
+      price: '1,500',
       duration: 'Half Day',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFk0cxrhG5faQUg5dg8tYIsPACMOqW9MCc37n5VfA8DkcBK4vL9L2NEyvYs-31pLQmKkKBc9-spHkwamdLyn9qrhT-bt17dff4VSE6She0z7bY_VHXUWdJDZY4-yrTOyRdRkATmkvaVYOg407tTdS_xla2sbHIJUPdLryHzP2WvdrZephy4G2JMNmD-otwtSk4nEXPmG2qJeyDTrEMAhbawQGVHCaYngjxDsRT-ipcbpEzph6-c9ULJ_nipET7s0hHTr4tS7Ow4XFw'
     }
@@ -128,7 +129,7 @@ const PhotoshootBookings = () => {
 
   const handlePayment = () => {
     if (!selectedService) {
-      alert('Please select a service first');
+      toast.error('Please select a service first');
       return;
     }
     setShowPaymentPopup(true);
@@ -278,7 +279,7 @@ const PhotoshootBookings = () => {
                           <span className="inline-block px-3 py-1 bg-primary text-[10px] font-bold uppercase tracking-widest rounded-full mb-3">Popular</span>
                         )}
                         <h3 className="text-2xl font-bold text-white mb-1">{service.title}</h3>
-                        <p className="text-slate-300 text-sm mb-4">Starting at {service.price} • {service.duration}</p>
+                        <p className="text-slate-300 text-sm mb-4">Starting at LKR {service.price} • {service.duration}</p>
                       </div>
                       <button className="size-12 rounded-xl bg-white text-primary flex items-center justify-center shadow-xl translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                         <span className="material-symbols-outlined">arrow_forward</span>
@@ -424,7 +425,7 @@ const PhotoshootBookings = () => {
                 <div className="pt-4 border-t border-gray-200 dark:border-[#2b2839]">
                   <div className="flex justify-between items-center mb-6">
                     <span className="text-gray-500 dark:text-gray-600 dark:text-slate-400">Total Estimate</span>
-                    <span className="text-2xl font-black text-gray-900 dark:text-gray-900 dark:text-white">${getServicePrice()}.00</span>
+                    <span className="text-2xl font-black text-gray-900 dark:text-gray-900 dark:text-white">LKR {getServicePrice()}.00</span>
                   </div>
                   <button 
                     onClick={handlePayment}

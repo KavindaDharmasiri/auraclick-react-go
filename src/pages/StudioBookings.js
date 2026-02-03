@@ -208,11 +208,11 @@ const StudioBookings = () => {
                         <td className={`px-6 py-5 ${
                           selectedStudio === studio.name ? 'font-bold' : 'font-semibold'
                         }`}>{studio.name}</td>
-                        <td className="px-6 py-5 text-center">${studio.hourly}</td>
+                        <td className="px-6 py-5 text-center">LKR {studio.hourly}</td>
                         <td className="px-6 py-5 text-center text-primary font-bold">
-                          ${studio.halfDay} <span className="text-[10px] text-green-500">Save 15%</span>
+                          LKR {studio.halfDay} <span className="text-[10px] text-green-500">Save 15%</span>
                         </td>
-                        <td className="px-6 py-5 text-center">${studio.fullDay}</td>
+                        <td className="px-6 py-5 text-center">LKR {studio.fullDay}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -348,7 +348,7 @@ const StudioBookings = () => {
                   <div>
                     <p className="text-xs opacity-70">Total Amount</p>
                     <p className="text-3xl font-black">
-                      ${studios.find(s => s.name === selectedStudio)?.halfDay || 320}.00
+                      LKR {studios.find(s => s.name === selectedStudio)?.halfDay || 320}.00
                     </p>
                   </div>
                   <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded">Tax included</span>

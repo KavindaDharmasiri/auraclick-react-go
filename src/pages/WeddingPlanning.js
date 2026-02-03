@@ -43,7 +43,7 @@ const WeddingPlanning = () => {
       id: 1,
       name: 'Gold',
       type: 'Essential',
-      price: '$4,500',
+      price: 'LKR 4,500',
       features: [
         'Partial Planning (3 months before)',
         'Vendor Management',
@@ -55,7 +55,7 @@ const WeddingPlanning = () => {
       id: 2,
       name: 'Platinum',
       type: 'Full Service',
-      price: '$8,200',
+      price: 'LKR 8,200',
       popular: true,
       features: [
         'Full-year Planning & Design',
@@ -212,11 +212,11 @@ const WeddingPlanning = () => {
           vision: ''
         });
       } else {
-        alert('Failed to submit booking. Please try again later.');
+        toast.error('Failed to submit booking. Please try again later.');
       }
     } catch (error) {
       console.error('Error submitting booking:', error);
-        alert('An error occurred while submitting your booking. Please try again later.');
+        toast.error('An error occurred while submitting your booking. Please try again later.');
     }
   };
 

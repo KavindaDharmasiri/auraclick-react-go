@@ -10,7 +10,79 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
     cvv: '',
     name: ''
   });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const formatCardNumber = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return v;
+    }
+  };
+
+  const formatExpiry = (value) => {
+    const v = value.replace(/\D/g, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + (v.length > 2 ? ' / ' + v.substring(2, 4) : '');
+    }
+    return v;
+  };
+
+  const validateCard = () => {
+    const newErrors = {};
+    
+    if (!cardDetails.name.trim()) {
+      newErrors.name = 'Cardholder name is required';
+    }
+    
+    const cardNumber = cardDetails.number.replace(/\s/g, '');
+    if (!cardNumber) {
+      newErrors.number = 'Card number is required';
+    } else if (cardNumber.length < 13 || cardNumber.length > 19) {
+      newErrors.number = 'Invalid card number';
+    }
+    
+    if (!cardDetails.expiry) {
+      newErrors.expiry = 'Expiry date is required';
+    } else if (!/^\d{2}\s\/\s\d{2}$/.test(cardDetails.expiry)) {
+      newErrors.expiry = 'Invalid expiry format (MM / YY)';
+    }
+    
+    if (!cardDetails.cvv) {
+      newErrors.cvv = 'CVV is required';
+    } else if (cardDetails.cvv.length < 3 || cardDetails.cvv.length > 4) {
+      newErrors.cvv = 'Invalid CVV';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCardInputChange = (field, value) => {
+    let formattedValue = value;
+    
+    if (field === 'number') {
+      formattedValue = formatCardNumber(value);
+    } else if (field === 'expiry') {
+      formattedValue = formatExpiry(value);
+    } else if (field === 'cvv') {
+      formattedValue = value.replace(/\D/g, '').substring(0, 4);
+    }
+    
+    setCardDetails({...cardDetails, [field]: formattedValue});
+    
+    if (errors[field]) {
+      setErrors({...errors, [field]: ''});
+    }
+  };
 
   const allTimeSlots = [
     { id: 1, time: '09:00 - 11:00' },
@@ -33,19 +105,18 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
   const handlePayment = async () => {
     if (isPhotoshoot) {
       if (!bookingDetails?.serviceType || !bookingDetails?.subService) {
-        alert('Please select a service first');
+        toast.error('Please select a service first');
         return;
       }
     } else {
       if (!bookingDetails?.timeSlots || bookingDetails.timeSlots.length === 0) {
-        alert('Please select at least one time slot');
+        toast.error('Please select at least one time slot');
         return;
       }
     }
     
     if (selectedPayment === 'card') {
-      if (!cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || !cardDetails.name) {
-        alert('Please fill in all card details');
+      if (!validateCard()) {
         return;
       }
     }
@@ -108,6 +179,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
     setSelectedPayment('card');
     setFullPayment(true);
     setCardDetails({ number: '', expiry: '', cvv: '', name: '' });
+    setErrors({});
     onClose();
   };
 
@@ -144,7 +216,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
               }`}
             >
               <div className="text-sm font-bold">Full Payment</div>
-              <div className="text-xs text-slate-400">${bookingDetails?.total}</div>
+              <div className="text-xs text-slate-400">LKR {bookingDetails?.total}</div>
             </button>
             <button
               onClick={() => setFullPayment(false)}
@@ -155,7 +227,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
               }`}
             >
               <div className="text-sm font-bold">Half Payment</div>
-              <div className="text-xs text-slate-400">${(bookingDetails?.total / 2) || 160}</div>
+              <div className="text-xs text-slate-400">LKR {(bookingDetails?.total / 2) || 160}</div>
             </button>
           </div>
         </div>
@@ -189,7 +261,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
             )}
             <div className="flex justify-between font-bold text-primary pt-2 border-t border-slate-800">
               <span>Total</span>
-              <span>${bookingDetails?.total}</span>
+              <span>LKR {bookingDetails?.total}</span>
             </div>
           </div>
         </div>
@@ -216,48 +288,75 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
 
           {/* Card Details Form */}
           {selectedPayment === 'card' && (
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Card Number</label>
-                <input
-                  type="text"
-                  placeholder="1234 5678 9012 3456"
-                  value={cardDetails.number}
-                  onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
-                  className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-primary focus:outline-none"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Expiry</label>
-                  <input
+            <div className="bg-gray-100 dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">Cardholder Name</label>
+                  <input 
+                    name="name"
+                    value={cardDetails.name}
+                    onChange={(e) => handleCardInputChange('name', e.target.value)}
+                    className={`w-full bg-white dark:bg-slate-900 border rounded-xl px-4 py-3 focus:ring-primary focus:border-primary text-gray-900 dark:text-white ${
+                      errors.name ? 'border-red-500' : 'border-gray-300 dark:border-slate-700'
+                    }`}
+                    placeholder="John Doe" 
                     type="text"
-                    placeholder="MM/YY"
+                  />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                </div>
+                <div className="md:col-span-2 relative">
+                  <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">Card Number</label>
+                  <div className="relative">
+                    <input 
+                      name="number"
+                      value={cardDetails.number}
+                      onChange={(e) => handleCardInputChange('number', e.target.value)}
+                      className={`w-full bg-white dark:bg-slate-900 border rounded-xl px-4 py-3 pr-12 focus:ring-primary focus:border-primary text-gray-900 dark:text-white ${
+                        errors.number ? 'border-red-500' : 'border-gray-300 dark:border-slate-700'
+                      }`}
+                      placeholder="0000 0000 0000 0000" 
+                      type="text"
+                      maxLength="19"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
+                      <div className="w-8 h-5 bg-slate-200 rounded text-[6px] flex items-center justify-center font-bold text-black">VISA</div>
+                    </div>
+                  </div>
+                  {errors.number && <p className="text-red-500 text-xs mt-1">{errors.number}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">Expiry Date</label>
+                  <input 
+                    name="expiry"
                     value={cardDetails.expiry}
-                    onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
-                    className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-primary focus:outline-none"
+                    onChange={(e) => handleCardInputChange('expiry', e.target.value)}
+                    className={`w-full bg-white dark:bg-slate-900 border rounded-xl px-4 py-3 focus:ring-primary focus:border-primary text-gray-900 dark:text-white ${
+                      errors.expiry ? 'border-red-500' : 'border-gray-300 dark:border-slate-700'
+                    }`}
+                    placeholder="MM / YY" 
+                    type="text"
+                    maxLength="7"
                   />
+                  {errors.expiry && <p className="text-red-500 text-xs mt-1">{errors.expiry}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">CVV</label>
-                  <input
-                    type="text"
-                    placeholder="123"
-                    value={cardDetails.cvv}
-                    onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
-                    className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-primary focus:outline-none"
-                  />
+                  <label className="block text-sm font-semibold mb-2 text-gray-900 dark:text-white">CVV</label>
+                  <div className="relative">
+                    <input 
+                      name="cvv"
+                      value={cardDetails.cvv}
+                      onChange={(e) => handleCardInputChange('cvv', e.target.value)}
+                      className={`w-full bg-white dark:bg-slate-900 border rounded-xl px-4 py-3 focus:ring-primary focus:border-primary text-gray-900 dark:text-white ${
+                        errors.cvv ? 'border-red-500' : 'border-gray-300 dark:border-slate-700'
+                      }`}
+                      placeholder="***" 
+                      type="password"
+                      maxLength="4"
+                    />
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-slate-400 text-lg cursor-help" title="3-digit security code on the back of your card">help</span>
+                  </div>
+                  {errors.cvv && <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Cardholder Name</label>
-                <input
-                  type="text"
-                  placeholder="John Doe"
-                  value={cardDetails.name}
-                  onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
-                  className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-primary focus:outline-none"
-                />
               </div>
             </div>
           )}
@@ -278,7 +377,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
           <button
             onClick={handlePayment}
             disabled={loading || (isPhotoshoot ? !bookingDetails?.serviceType : (bookingDetails?.timeSlots?.length === 0))}
-            className={`w-full py-4 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 ${
+            className={`w-full py-4 mt-4 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 ${
               loading || (bookingDetails?.timeSlots?.length === 0)
                 ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary/90'
@@ -291,7 +390,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
               </>
             ) : (
               <>
-                Pay ${fullPayment ? bookingDetails?.total : (bookingDetails?.total / 2) || 160}
+                Pay LKR {fullPayment ? bookingDetails?.total : (bookingDetails?.total / 2) || 160}
                 <span className="material-symbols-outlined">lock</span>
               </>
             )}
