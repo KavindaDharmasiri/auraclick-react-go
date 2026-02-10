@@ -288,6 +288,7 @@ const AdminDashboard = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState('Status');
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [viewingSlip, setViewingSlip] = useState(null);
   const [metrics, setMetrics] = useState({
     totalBookings: 0,
     pendingBookings: 0,
@@ -987,25 +988,50 @@ const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <select
-                            value={order.status || ''}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-3 py-1 text-sm text-slate-900 dark:text-white"
-                          >
-                            <option value="PAID">Paid</option>
-                            <option value="PROCESSING">Processing</option>
-                            <option value="SHIPPED">Shipped</option>
-                            <option value="DELIVERED">Delivered</option>
-                            <option value="CANCELLED">Cancelled</option>
-                          </select>
-                          <button 
-                            onClick={() => handleViewOrder(order)}
-                            className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold"
-                          >
-                            View
-                          </button>
-                        </div>
+                        {order.status === 'PENDING' && order.paymentSlip ? (
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => setViewingSlip(order)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              View Slip
+                            </button>
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'PAID')}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => updateOrderStatus(order.id, 'REJECTED')}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 justify-end">
+                            <select
+                              value={order.status || ''}
+                              onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                              className="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-3 py-1 text-sm text-slate-900 dark:text-white"
+                            >
+                              <option value="PENDING">Pending</option>
+                              <option value="PAID">Paid</option>
+                              <option value="PROCESSING">Processing</option>
+                              <option value="SHIPPED">Shipped</option>
+                              <option value="DELIVERED">Delivered</option>
+                              <option value="CANCELLED">Cancelled</option>
+                              <option value="REJECTED">Rejected</option>
+                            </select>
+                            <button 
+                              onClick={() => handleViewOrder(order)}
+                              className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold"
+                            >
+                              View
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -2628,6 +2654,58 @@ const AdminDashboard = () => {
               >
                 Add
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Slip Modal */}
+      {viewingSlip && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setViewingSlip(null)}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+              <div>
+                <h2 className="text-xl font-bold dark:text-white">Payment Slip - {viewingSlip.orderNumber}</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Customer: {viewingSlip.user?.firstName} {viewingSlip.user?.lastName}</p>
+              </div>
+              <button onClick={() => setViewingSlip(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-6">
+              {viewingSlip.paymentSlip?.fileName?.endsWith('.pdf') ? (
+                <iframe
+                  src={`data:application/pdf;base64,${viewingSlip.paymentSlip.fileBase64}`}
+                  className="w-full h-[600px] border border-slate-300 dark:border-slate-700 rounded"
+                  title="Payment Slip"
+                />
+              ) : (
+                <img
+                  src={`data:image/jpeg;base64,${viewingSlip.paymentSlip.fileBase64}`}
+                  alt="Payment Slip"
+                  className="w-full rounded"
+                />
+              )}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    updateOrderStatus(viewingSlip.id, 'PAID');
+                    setViewingSlip(null);
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold"
+                >
+                  Accept Payment
+                </button>
+                <button
+                  onClick={() => {
+                    updateOrderStatus(viewingSlip.id, 'REJECTED');
+                    setViewingSlip(null);
+                  }}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold"
+                >
+                  Reject Payment
+                </button>
+              </div>
             </div>
           </div>
         </div>

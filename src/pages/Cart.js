@@ -17,6 +17,8 @@ const Cart = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentStep, setPaymentStep] = useState('processing'); // processing, success, error
   const [errors, setErrors] = useState({});
+  const [paymentSlip, setPaymentSlip] = useState(null);
+  const [slipPreview, setSlipPreview] = useState(null);
 
   useEffect(() => {
     loadCartItems();
@@ -38,6 +40,7 @@ const Cart = () => {
 
   const paymentMethods = [
     { id: 'card', name: 'Cards (Visa/Master)', icon: 'credit_card' },
+    { id: 'slip', name: 'Bank Slip Upload', icon: 'upload_file' },
     { id: 'upay', name: 'UPay Wallet', logo: 'UPay' },
     { id: 'sampath', name: 'Sampath Vishwa', logo: 'SAMPATH' },
     { id: 'combank', name: 'ComBank Online', logo: 'COMBANK' },
@@ -157,10 +160,8 @@ const Cart = () => {
       setShowPaymentModal(true);
       setPaymentStep('processing');
       
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Process order
       const orderData = {
         cartItems: cartItems.map(item => ({
           gearId: item.gear.id,
@@ -179,6 +180,20 @@ const Cart = () => {
         tax: tax
       };
       
+      if (paymentSlip) {
+        const reader = new FileReader();
+        const fileBase64 = await new Promise((resolve) => {
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.readAsDataURL(paymentSlip);
+        });
+        
+        orderData.fileBase64 = fileBase64;
+        orderData.fileName = paymentSlip.name;
+      }
+      
       const response = await authService.apiCall('http://localhost:5555/api/orders/create', {
         method: 'POST',
         headers: {
@@ -189,10 +204,10 @@ const Cart = () => {
       
       if (response.ok) {
         setPaymentStep('success');
-        // Clear cart after successful order
         setTimeout(() => {
           setCartItems([]);
-          // Trigger cart count update in navigation
+          setPaymentSlip(null);
+          setSlipPreview(null);
           window.dispatchEvent(new Event('cartUpdated'));
         }, 2000);
       } else {
@@ -210,7 +225,6 @@ const Cart = () => {
   const isPaymentFormComplete = () => {
     if (cartItems.length === 0) return false;
     
-    // Only enable for card payments
     if (selectedPayment === 'card') {
       return cardData.name.trim() && 
              cardData.number.replace(/\s/g, '').length === 16 && 
@@ -218,7 +232,10 @@ const Cart = () => {
              cardData.cvv.length === 3;
     }
     
-    // Disable for all other payment methods
+    if (selectedPayment === 'slip') {
+      return paymentSlip !== null;
+    }
+    
     return false;
   };
 
@@ -232,6 +249,11 @@ const Cart = () => {
       if (!validateCardData()) {
         return;
       }
+    }
+    
+    if (selectedPayment === 'slip' && !paymentSlip) {
+      alert('Please upload your payment slip');
+      return;
     }
     
     processPayment();
@@ -362,6 +384,68 @@ const Cart = () => {
                       {errors.cvv && <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Bank Slip Upload */}
+              {selectedPayment === 'slip' && (
+                <div className="bg-gray-100 dark:bg-slate-800 p-6 rounded-2xl border border-gray-200 dark:border-slate-700">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4">
+                    <div className="flex gap-3">
+                      <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">info</span>
+                      <div className="text-sm text-blue-900 dark:text-blue-200">
+                        <p className="font-semibold mb-2">Bank Account Details:</p>
+                        <p>Bank: Commercial Bank | Account: Aura Photography</p>
+                        <p>Account Number: 1234567890 | Branch: Colombo 03</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <input
+                    type="file"
+                    id="paymentSlip"
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setPaymentSlip(file);
+                        if (file.type.startsWith('image/')) {
+                          setSlipPreview(URL.createObjectURL(file));
+                        } else {
+                          setSlipPreview(null);
+                        }
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="paymentSlip"
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer hover:border-primary transition-colors"
+                  >
+                    {slipPreview ? (
+                      <img src={slipPreview} alt="Preview" className="max-h-40 rounded-lg mb-3" />
+                    ) : (
+                      <span className="material-symbols-outlined text-4xl text-gray-400 mb-3">cloud_upload</span>
+                    )}
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {paymentSlip ? paymentSlip.name : 'Click to upload payment slip'}
+                    </span>
+                    <span className="text-xs text-gray-600 dark:text-slate-400 mt-1">
+                      Supports: JPG, PNG, PDF (Max 10MB)
+                    </span>
+                  </label>
+                  {paymentSlip && (
+                    <button
+                      onClick={() => {
+                        setPaymentSlip(null);
+                        setSlipPreview(null);
+                      }}
+                      className="mt-3 text-sm text-red-500 hover:text-red-600 flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                      Remove file
+                    </button>
+                  )}
                 </div>
               )}
             </div>
