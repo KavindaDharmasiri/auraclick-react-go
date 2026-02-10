@@ -1047,8 +1047,9 @@ const AdminDashboard = () => {
                           <div className="flex items-center gap-2 justify-end">
                             <button
                               onClick={() => {
+                                const token = localStorage.getItem('token');
                                 setViewingSlip(order);
-                                setSlipUrl(`http://localhost:5555/api/orders/${order.id}/paymentSlip`);
+                                setSlipUrl(`http://localhost:5555/api/orders/${order.id}/paymentSlip?token=${token}`);
                               }}
                               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
                             >
