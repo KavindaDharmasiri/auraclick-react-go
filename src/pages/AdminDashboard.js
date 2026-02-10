@@ -289,6 +289,7 @@ const AdminDashboard = () => {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [viewingSlip, setViewingSlip] = useState(null);
+  const [slipUrl, setSlipUrl] = useState(null);
   const [metrics, setMetrics] = useState({
     totalBookings: 0,
     pendingBookings: 0,
@@ -359,6 +360,60 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error updating status:', error);
+    }
+  };
+
+  const viewPaymentSlip = async (slipId, booking) => {
+    const token = localStorage.getItem('token');
+    setViewingSlip(booking);
+    setSlipUrl(`http://localhost:5555/api/bookings/admin/paymentSlip/${slipId}?token=${token}`);
+  };
+
+  const approvePaymentSlip = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5555/api/bookings/admin/paymentSlip/approve/${bookingId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        fetchBookings();
+        fetchMetrics();
+        toast.success('Payment slip approved!');
+        setViewingSlip(null);
+        setSlipUrl(null);
+      }
+    } catch (error) {
+      console.error('Error approving payment slip:', error);
+      toast.error('Failed to approve payment slip');
+    }
+  };
+
+  const rejectPaymentSlip = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5555/api/bookings/admin/paymentSlip/reject/${bookingId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.statusCode === 'SUCCESS') {
+        fetchBookings();
+        fetchMetrics();
+        toast.success('Payment slip rejected!');
+        setViewingSlip(null);
+        setSlipUrl(null);
+      }
+    } catch (error) {
+      console.error('Error rejecting payment slip:', error);
+      toast.error('Failed to reject payment slip');
     }
   };
 
@@ -991,7 +1046,10 @@ const AdminDashboard = () => {
                         {order.status === 'PENDING' && order.paymentSlip ? (
                           <div className="flex items-center gap-2 justify-end">
                             <button
-                              onClick={() => setViewingSlip(order)}
+                              onClick={() => {
+                                setViewingSlip(order);
+                                setSlipUrl(`http://localhost:5555/api/orders/${order.id}/paymentSlip`);
+                              }}
                               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
                             >
                               View Slip
@@ -1229,23 +1287,59 @@ const AdminDashboard = () => {
                         </select>
                       </td>
                       <td className="px-6 py-4">
-                        <select
-                          value={booking.paymentStatus}
-                          onChange={(e) => {
-                            const apiStatus = mapPaymentStatusToAPI(e.target.value);
-                            updateBookingStatus(booking.bookingId, booking.bookingStatus, apiStatus);
-                          }}
-                          className="text-sm bg-transparent border border-slate-300 dark:border-slate-600 rounded px-2 py-1"
-                        >
-                          <option value="Paid">Paid</option>
-                          <option value="Partial">Partial</option>
-                          <option value="Completed">Completed</option>
-                        </select>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={booking.paymentStatus}
+                            onChange={(e) => {
+                              const apiStatus = mapPaymentStatusToAPI(e.target.value);
+                              updateBookingStatus(booking.bookingId, booking.bookingStatus, apiStatus);
+                            }}
+                            className="text-sm bg-transparent border border-slate-300 dark:border-slate-600 rounded px-2 py-1"
+                            disabled={booking.hasPaymentSlip && booking.paymentStatus === 'Pending'}
+                          >
+                            <option value="Paid">Paid</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Pending">Pending</option>
+                          </select>
+                          {booking.hasPaymentSlip && (
+                            <button
+                              onClick={() => viewPaymentSlip(booking.paymentSlipId)}
+                              className="text-blue-400 hover:text-blue-300 p-1"
+                              title="View Payment Slip"
+                            >
+                              <span className="material-symbols-outlined text-sm">receipt</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold">
-                          {booking.bookingStatus === 'COMPLETED' ? 'View' : 'Edit'}
-                        </button>
+                        {booking.hasPaymentSlip && booking.paymentStatus === 'Pending' ? (
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => viewPaymentSlip(booking.paymentSlipId, booking)}
+                              className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 px-3 py-1 rounded-lg font-semibold text-sm"
+                            >
+                              View Slip
+                            </button>
+                            <button
+                              onClick={() => approvePaymentSlip(booking.bookingId)}
+                              className="bg-green-500/20 text-green-400 hover:bg-green-500/30 px-3 py-1 rounded-lg font-semibold text-sm"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => rejectPaymentSlip(booking.bookingId)}
+                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-lg font-semibold text-sm"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <button className="text-primary hover:bg-primary/10 px-3 py-1 rounded-lg text-sm font-semibold">
+                            {booking.bookingStatus === 'COMPLETED' ? 'View' : 'Edit'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -2675,13 +2769,13 @@ const AdminDashboard = () => {
             <div className="p-6">
               {viewingSlip.paymentSlip?.fileName?.endsWith('.pdf') ? (
                 <iframe
-                  src={`data:application/pdf;base64,${viewingSlip.paymentSlip.fileBase64}`}
+                  src={slipUrl}
                   className="w-full h-[600px] border border-slate-300 dark:border-slate-700 rounded"
                   title="Payment Slip"
                 />
               ) : (
                 <img
-                  src={`data:image/jpeg;base64,${viewingSlip.paymentSlip.fileBase64}`}
+                  src={slipUrl}
                   alt="Payment Slip"
                   className="w-full rounded"
                 />
@@ -2757,6 +2851,45 @@ const AdminDashboard = () => {
                   <span className="text-lg font-bold dark:text-white">Total Amount:</span>
                   <span className="text-lg font-bold text-primary">LKR {selectedOrder.totalAmount?.toLocaleString()}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Payment Slip Modal */}
+      {viewingSlip && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => { setViewingSlip(null); setSlipUrl(null); }}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+              <div>
+                <h2 className="text-xl font-bold dark:text-white">Payment Slip - Booking #{viewingSlip.bookingId}</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Customer: {viewingSlip.customerName}</p>
+              </div>
+              <button onClick={() => { setViewingSlip(null); setSlipUrl(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-6">
+              {slipUrl && (
+                <iframe
+                  src={slipUrl}
+                  className="w-full h-[600px] border border-slate-300 dark:border-slate-700 rounded"
+                  title="Payment Slip"
+                />
+              )}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => approvePaymentSlip(viewingSlip.bookingId)}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold"
+                >
+                  Accept Payment
+                </button>
+                <button
+                  onClick={() => rejectPaymentSlip(viewingSlip.bookingId)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold"
+                >
+                  Reject Payment
+                </button>
               </div>
             </div>
           </div>
