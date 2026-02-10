@@ -12,6 +12,8 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
   });
   const [cardErrors, setCardErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [paymentSlip, setPaymentSlip] = useState(null);
+  const [slipPreview, setSlipPreview] = useState(null);
 
   if (!isOpen) return null;
 
@@ -86,6 +88,7 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
 
   const paymentMethods = [
     { id: 'card', name: 'Credit/Debit Card', icon: 'credit_card' },
+    { id: 'slip', name: 'Bank Slip Upload', icon: 'upload_file' },
     { id: 'paypal', name: 'PayPal', icon: 'account_balance_wallet' },
     { id: 'apple', name: 'Apple Pay', icon: 'phone_iphone' },
     { id: 'google', name: 'Google Pay', icon: 'account_balance_wallet' }
@@ -109,6 +112,11 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
         toast.error('Please fix card details errors');
         return;
       }
+    }
+    
+    if (selectedPayment === 'slip' && !paymentSlip) {
+      toast.error('Please upload your payment slip');
+      return;
     }
     
     setLoading(true);
@@ -137,6 +145,21 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
           studioId: bookingDetails.studioId
         };
         apiUrl = 'http://localhost:5555/api/bookings/studioBooking/setBooking';
+      }
+      
+      // Add payment slip if uploaded
+      if (paymentSlip) {
+        const reader = new FileReader();
+        const fileBase64 = await new Promise((resolve) => {
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+          };
+          reader.readAsDataURL(paymentSlip);
+        });
+        
+        payload.fileBase64 = fileBase64;
+        payload.fileName = paymentSlip.name;
       }
       
       const response = await fetch(apiUrl, {
@@ -170,6 +193,8 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
     setFullPayment(true);
     setCardDetails({ number: '', expiry: '', cvv: '', name: '' });
     setCardErrors({});
+    setPaymentSlip(null);
+    setSlipPreview(null);
     onClose();
   };
 
@@ -354,8 +379,70 @@ const PaymentPopup = ({ isOpen, onClose, bookingDetails, isPhotoshoot = false })
             </div>
           )}
 
+          {/* Bank Slip Upload */}
+          {selectedPayment === 'slip' && (
+            <div className="space-y-4 mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                <div className="flex gap-3">
+                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">info</span>
+                  <div className="text-sm text-blue-900 dark:text-blue-200">
+                    <p className="font-semibold mb-2">Bank Account Details:</p>
+                    <p>Bank: Commercial Bank | Account: Aura Photography</p>
+                    <p>Account Number: 1234567890 | Branch: Colombo 03</p>
+                  </div>
+                </div>
+              </div>
+              
+              <input
+                type="file"
+                id="paymentSlipPopup"
+                accept="image/*,.pdf"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setPaymentSlip(file);
+                    if (file.type.startsWith('image/')) {
+                      setSlipPreview(URL.createObjectURL(file));
+                    } else {
+                      setSlipPreview(null);
+                    }
+                  }
+                }}
+                className="hidden"
+              />
+              <label
+                htmlFor="paymentSlipPopup"
+                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl cursor-pointer hover:border-primary transition-colors"
+              >
+                {slipPreview ? (
+                  <img src={slipPreview} alt="Preview" className="max-h-40 rounded-lg mb-3" />
+                ) : (
+                  <span className="material-symbols-outlined text-4xl text-slate-400 mb-3">cloud_upload</span>
+                )}
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {paymentSlip ? paymentSlip.name : 'Click to upload payment slip'}
+                </span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                  Supports: JPG, PNG, PDF (Max 10MB)
+                </span>
+              </label>
+              {paymentSlip && (
+                <button
+                  onClick={() => {
+                    setPaymentSlip(null);
+                    setSlipPreview(null);
+                  }}
+                  className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                  Remove file
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Other Payment Methods */}
-          {selectedPayment !== 'card' && (
+          {selectedPayment !== 'card' && selectedPayment !== 'slip' && (
             <div className="mb-6 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
               <span className="material-symbols-outlined text-primary text-2xl mb-2 block">
                 {paymentMethods.find(m => m.id === selectedPayment)?.icon}
